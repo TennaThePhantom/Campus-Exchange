@@ -1,32 +1,53 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+initializeApp();
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+exports.createUser = onRequest(async (req, res) => {
+	// Get data from the request
+	// Expecting a JSON from the frontend: { studentId, studentName, ucard, umass, umassLowell, student, sixteenDigitNumber } can change later
+	const {
+		studentId,
+		studentName,
+		ucard,
+		umass,
+		umassLowell,
+		student,
+		sixteenDigitNumber,
+	} = req.body;
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+	// Basic validation: Ensure the StudentID is provided(for right now)
+	if (!studentId) {
+		return res.status(400).send({ error: "StudentID is required." });
+	}
+
+	const db = getFirestore();
+
+	// Create a document in the "users" collection
+	// The document ID is set to the StudentID for fast look up.
+	const userRef = db.collection("users").doc(studentId);
+	const userData = {
+		studentName: studentName || "", // Use empty string as fallback(going to remove it was just for testing)
+		studentId: studentId,
+		ucard: ucard || false,
+		umass: umass || false,
+		umassLowell: umassLowell || false,
+		student: student || false,
+		sixteenDigitNumber: sixteenDigitNumber || "",
+		createdAt: new Date().toISOString(), // Timestamp for when the account was created
+	};
+
+	try {
+		// Write the data to Firestore
+		await userRef.set(userData);
+		logger.info(`User created successfully: ${studentId}`);
+		return res
+			.status(200)
+			.send({ success: true, message: `User ${studentName} created.` });
+	} catch (error) {
+		logger.error("Error creating user:", error);
+		return res.status(500).send({ error: "Failed to create user." });
+	}
+});

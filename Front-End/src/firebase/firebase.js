@@ -1,10 +1,11 @@
+// going to modify this later don't touch at the moment
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Firebase configuration going to move in .env file soon
+// Firebase configuration - going to move in .env file soon
 const firebaseConfig = {
 	apiKey: "AIzaSyBfP2yN7rjf_pggWQqup6VP_kT3zMmSQFk",
 	authDomain: "campus-exchange-d47f4.firebaseapp.com",
