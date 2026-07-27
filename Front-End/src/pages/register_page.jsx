@@ -6,7 +6,8 @@
   Besides that, everything should be good, just needs the backend stuff for signing in
   and everything, including the backend for ID uploading and doing all that
 */
- 
+
+{/* stuff for camera icon */}
 import { useState } from "react";
 import { Camera, ArrowUp, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ function RegisterPage({ onRegistered, onSignInClick }) {
             Take a clear photo of your UML ID and upload it below. After
             verification, you will be allowed to register an account.
           </p>
- 
+          {/* builds the icon for image uploading */}
           <div className="flex max-w-sm flex-col items-center rounded-lg border border-sky-200 bg-white p-8 text-center opacity-70">
             <div className="relative mb-6 flex items-center gap-3">
               <Camera className="size-16 text-neutral-900" strokeWidth={1.5} />
