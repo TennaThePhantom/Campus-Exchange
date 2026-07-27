@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-export default function Dashboard( setPage ) {
+export default function Dashboard({setPage}) {
     return (
         <div className="min-h-screen bg-gray-100 p-10">
 
