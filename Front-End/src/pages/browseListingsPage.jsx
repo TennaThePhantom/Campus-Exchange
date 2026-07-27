@@ -1,3 +1,14 @@
+/*
+	Notes from Daniyal July 27:
+	I made the search bar feature work, since someone 
+	else had already done 98% of it, it was very quick. All I
+	had to do was make a variable called filteredListings, and 
+	then replace it with the regular listings. when the search bar 
+	is empty, all results will show. As someone types in letters, 
+	they will become more and more filtered
+
+*/
+
 import React, { useState } from "react";
 import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -49,6 +60,11 @@ export default function BrowseListings({ setPage }) {
 			location: "South Campus",
 		},
 	];
+
+	// filters listings by name, changes all letters to lowercase, making it case insensitive
+	const filteredListings = listings.filter((item) =>
+		item.title.toLowerCase().includes(searchQuery.toLowerCase())
+	);
 
 	return (
 		<div className="min-h-svh bg-sky-50 text-neutral-900 font-sans pb-12">
@@ -239,8 +255,9 @@ export default function BrowseListings({ setPage }) {
 						</div>
 
 						{/* Grid */}
+						{/* filteredListings makes the results become dynamic, responding to the search bar */}
 						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-							{listings.map((item) => (
+							{filteredListings.map((item) => (
 								<Card
 									key={item.id}
 									className="overflow-hidden border-sky-200 bg-white shadow-sm transition-shadow hover:shadow-md"
