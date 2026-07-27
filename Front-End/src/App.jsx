@@ -21,6 +21,7 @@ function App() {
     return (
       <UserSignIn
         onSignedIn={() => setPage("dashboard")}
+        onSignedIn={() => setPage("dashboard")}
         onCreateAccountClick={() => setPage("register")}
       />
     );
