@@ -13,7 +13,7 @@ const visionClient = new vision.ImageAnnotatorClient({
 });
 
 // Your existing createUser function
-exports.createUser = onRequest((req, res) => {
+exports.createUser = onRequest(async (req, res) => {
 	// Add CORS headers manually for v2 functions
 	res.set('Access-Control-Allow-Origin', 'https://campus-exchange-d47f4.web.app');
 	res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
