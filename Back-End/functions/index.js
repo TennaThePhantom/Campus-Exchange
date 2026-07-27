@@ -2,20 +2,25 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const cors = require("cors")({ origin: true });
 const vision = require("@google-cloud/vision");
 
 // Initialize Firebase Admin SDK
 initializeApp();
 
 // Initialize Google Cloud Vision client
-const visionClient = new vision.ImageAnnotatorClient({
-	keyFilename: "./CampusExchangeAPI.json",
-});
+const visionClient = new vision.ImageAnnotatorClient();
 
-// Your existing createUser function
-exports.createUser = onRequest((req, res) => {
-	cors(req, res, async () => {
+// ✅ createUser with v2 CORS - using the correct syntax
+exports.createUser = onRequest(
+	{
+		cors: [
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+			"https://campus-exchange-d47f4.web.app",
+			"https://campus-exchange-d47f4.firebaseapp.com",
+		],
+	},
+	async (req, res) => {
 		const {
 			studentId,
 			studentName,
@@ -54,28 +59,33 @@ exports.createUser = onRequest((req, res) => {
 			logger.error("Error creating user:", error);
 			return res.status(500).send({ error: "Failed to create user." });
 		}
-	});
-});
+	},
+);
 
-// ID Scanning function with Vision API
-exports.scanStudentId = onRequest((req, res) => {
-	cors(req, res, async () => {
+// ✅ scanStudentId with v2 CORS - using the correct syntax
+exports.scanStudentId = onRequest(
+	{
+		cors: [
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+			"https://campus-exchange-d47f4.web.app",
+			"https://campus-exchange-d47f4.firebaseapp.com",
+		],
+	},
+	async (req, res) => {
 		try {
-			const { image } = req.body; // No studentId needed - extracted from image
+			const { image } = req.body;
 
-			// --- 1. Validate request ---
 			if (!image) {
 				return res.status(400).send({ error: "No image provided." });
 			}
 
-			// --- 2. Call Google Cloud Vision API ---
 			logger.info("Calling Google Cloud Vision API...");
 
 			const [result] = await visionClient.textDetection({
-				image: { content: image }, // image is base64 string
+				image: { content: image },
 			});
 
-			// --- 3. Extract text and confidence ---
 			const detections = result.textAnnotations;
 			if (detections.length === 0) {
 				return res.status(400).send({
@@ -85,30 +95,22 @@ exports.scanStudentId = onRequest((req, res) => {
 				});
 			}
 
-			// Full extracted text (first annotation contains all text)
 			const fullText = detections[0].description;
 			logger.info(`Extracted text: ${fullText.substring(0, 200)}...`);
 
-			// --- 4. Parse text for required information ---
-			// Extract 8-digit Student ID (matches pattern like 12345678)
 			const idRegex = /\b(\d{8})\b/;
 			const idMatch = fullText.match(idRegex);
 			const extractedId = idMatch ? idMatch[1] : null;
 
-			// Extract Student Name - captures the name immediately before "ID#"
 			const nameRegex = /([A-Za-z]+(?:\s+[A-Za-z]+){1,3})\s*ID#/i;
 			const nameMatch = fullText.match(nameRegex);
 			let extractedName = nameMatch ? nameMatch[1].trim() : null;
 
-			// --- Clean the extracted name ---
 			if (extractedName) {
-				// Remove "Student" if it appears at the start of the name
 				extractedName = extractedName.replace(/^Student\s*/i, "");
-				// Remove any remaining newlines or extra spaces
 				extractedName = extractedName.replace(/[\n\r]+/g, " ").trim();
 			}
 
-			// Check for keywords
 			const hasUcard = /UCARD/i.test(fullText);
 			const hasUmass = /UMASS/i.test(fullText);
 			const hasUmassLowell =
@@ -117,12 +119,10 @@ exports.scanStudentId = onRequest((req, res) => {
 				);
 			const hasStudent = /STUDENT/i.test(fullText);
 
-			// Extract 16-digit number
 			const sixteenDigitRegex = /\b(\d{16})\b/;
 			const sixteenMatch = fullText.match(sixteenDigitRegex);
 			const sixteenDigitNumber = sixteenMatch ? sixteenMatch[1] : null;
 
-			// --- 5. Calculate confidence score ---
 			let confidence = 0;
 			if (extractedId) confidence += 40;
 			if (extractedName) confidence += 30;
@@ -130,7 +130,6 @@ exports.scanStudentId = onRequest((req, res) => {
 			if (hasUmassLowell) confidence += 10;
 			if (hasStudent) confidence += 10;
 
-			// --- 6. Verify - only check confidence (no ID comparison needed) ---
 			const verified = confidence >= 90;
 
 			logger.info(
@@ -138,7 +137,6 @@ exports.scanStudentId = onRequest((req, res) => {
 			);
 			logger.info(`🔍 Verified: ${verified}`);
 
-			// --- 7. Prepare response ---
 			const responseData = {
 				success: true,
 				verified: verified,
@@ -167,5 +165,5 @@ exports.scanStudentId = onRequest((req, res) => {
 				error: "Failed to scan ID. Please try again later.",
 			});
 		}
-	});
-});
+	},
+);
