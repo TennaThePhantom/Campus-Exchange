@@ -2,6 +2,7 @@ import { useState } from "react";
 import LandingPage from "@/pages/landing_page";
 import RegisterPage from "@/pages/register_page";
 import UserSignIn from "@/pages/user_sign_in";
+import Dashboard from "@/pages/Dashboard";
 
 function App() {
   const [page, setPage] = useState("landing");
@@ -18,10 +19,14 @@ function App() {
   if (page === "signin") {
     return (
       <UserSignIn
-        onSignedIn={() => alert("Signed in! (welcome page not built yet)")}
+        onSignedIn={() => setPage("dashboard")}
         onCreateAccountClick={() => setPage("register")}
       />
     );
+  }
+
+  if (page === "dashboard") {
+    return <Dashboard/>;
   }
 
   return (
