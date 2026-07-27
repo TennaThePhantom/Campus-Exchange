@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { db } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-const VerificationPage = () => {
+const VerificationPage = ({ setPage }) => {
 	const [image, setImage] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [result, setResult] = useState(null);
@@ -252,7 +252,11 @@ const VerificationPage = () => {
 						<p className="text-sm text-green-600 dark:text-green-300 mt-1">
 							Your UML ID has been verified and your account is ready to use.
 						</p>
-						<Button className="mt-4" variant="outline">
+						<Button
+							className="mt-4"
+							variant="outline"
+							onClick={() => setPage("dashboard")}
+						>
 							Continue to Dashboard
 						</Button>
 					</div>

@@ -32,15 +32,19 @@ function App() {
 		return <Dashboard setPage={setPage} />;
 	}
 	if (page === "verification") {
-		return <VerificationPage />;
+		return <VerificationPage setPage={setPage} />;
 	}
 	if (page === "sell") {
-		return <SellItem />;
+		return <SellItem setPage={setPage} />;
+	}
+	if (page === "browse") {
+		return <BrowseListings setPage={setPage} />;
 	}
 	return (
 		<LandingPage
 			onRegisterClick={() => setPage("register")}
 			onSignInClick={() => setPage("signin")}
+			onDemoClick={() => setPage("dashboard")}
 		/>
 	);
 }

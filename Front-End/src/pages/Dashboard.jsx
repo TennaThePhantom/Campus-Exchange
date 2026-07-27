@@ -42,7 +42,8 @@ export default function Dashboard({setPage}) {
                     </p>
 
                     <div className="mt-8 flex justify-center">
-                        <Button className="bg-green-600 hover:bg-green-700">
+                        <Button className="bg-green-600 hover:bg-green-700"
+                        onClick={() => setPage("browse")}>
                             Start Shopping
                         </Button>
                     </div>

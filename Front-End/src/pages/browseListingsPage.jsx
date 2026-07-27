@@ -1,5 +1,3 @@
-// this is not connected to anything at the moment 
-// need to connect this to the dashboard if user clicks on browse-listings it should take them here - tennessee
 import React, { useState } from "react";
 import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function BrowseListings() {
+export default function BrowseListings({ setPage }) {
 	const [searchQuery, setSearchQuery] = useState("");
 
 	// Mock data
@@ -57,12 +55,20 @@ export default function BrowseListings() {
 			{/* Navigation Bar */}
 			<nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-sky-200">
 				<div className="flex gap-8 text-sm font-medium">
-					<a href="#" className="hover:text-red-600 transition-colors">
+					<button
+						type="button"
+						onClick={() => setPage("dashboard")}
+						className="hover:text-red-600 transition-colors"
+					>
 						Home
-					</a>
-					<a href="#" className="hover:text-red-600 transition-colors">
+					</button>
+					<button
+						type="button"
+						onClick={() => setPage("sell")}
+						className="hover:text-red-600 transition-colors"
+					>
 						Sell
-					</a>
+					</button>
 					<a href="#" className="hover:text-red-600 transition-colors">
 						Messages
 					</a>

@@ -8,7 +8,7 @@
 */ 
 import { Button } from "@/components/ui/button";
  
-function LandingPage({ onRegisterClick, onSignInClick }) {
+function LandingPage({ onRegisterClick, onSignInClick, onDemoClick }) {
   return (
     <div
       className="relative flex min-h-svh flex-col items-center justify-end bg-cover bg-center px-4 pb-20 text-center"
@@ -38,10 +38,18 @@ function LandingPage({ onRegisterClick, onSignInClick }) {
         <Button
           size="lg"
           variant="secondary"
-          onClick={onRegisterClick}
+          onClick={onSignInClick}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
         Sign In
+        </Button>
+        <Button
+          size="lg"
+          variant="secondary"
+          onClick={onDemoClick}
+          className="bg-neutral-800 hover:bg-neutral-900 text-white"
+        >
+        Demo
         </Button>
       </div>
     </div>
