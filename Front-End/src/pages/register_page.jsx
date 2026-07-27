@@ -38,7 +38,7 @@ function RegisterPage({ onRegistered, onSignInClick }) {
       <h1 className="mb-2 text-5xl font-black">Create an Account</h1>
  
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-        {/* Left side: ID upload is ui only */}
+        {/* Left side: ID upload */}
         <div>
           <h2 className="mb-2 text-2xl font-bold">Upload your UML ID</h2>
           <p className="mb-6 font-semibold text-neutral-600">
