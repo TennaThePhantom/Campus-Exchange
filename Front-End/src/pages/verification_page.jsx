@@ -1,5 +1,5 @@
 // working for clear photo ID haven't tested it with damage IDS yet - Tennessee
-// not connected to dashboard when user clicks on yes it should sent them to the dashboard 
+// not connected to dashboard when user clicks on yes it should sent them to the dashboard
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { db } from "../firebase/firebase";
@@ -31,6 +31,19 @@ const VerificationPage = ({ setPage }) => {
 		reader.readAsDataURL(file);
 	};
 
+	// Get the correct function URL based on environment
+	const getFunctionUrl = () => {
+		// Check if we're in local development
+		if (
+			window.location.hostname === "localhost" ||
+			window.location.hostname === "127.0.0.1"
+		) {
+			return "http://127.0.0.1:5001/campus-exchange-d47f4/us-central1/scanStudentId";
+		}
+		// Production URL
+		return "https://us-central1-campus-exchange-d47f4.cloudfunctions.net/scanStudentId";
+	};
+
 	// Send the base64 image to the Cloud Function for scanning
 	const handleScanID = async () => {
 		if (!image) {
@@ -45,18 +58,15 @@ const VerificationPage = ({ setPage }) => {
 		setConfirmationStep(false);
 
 		try {
-			const response = await fetch(
-				"http://127.0.0.1:5001/campus-exchange-d47f4/us-central1/scanStudentId",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						image: image,
-					}),
+			const response = await fetch(getFunctionUrl(), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
 				},
-			);
+				body: JSON.stringify({
+					image: image,
+				}),
+			});
 
 			const data = await response.json();
 
