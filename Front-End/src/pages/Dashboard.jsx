@@ -1,85 +1,166 @@
 import { Button } from "@/components/ui/button";
+import { ShoppingBag, Plus, User } from "lucide-react";
 
-export default function Dashboard({setPage}) {
-    return (
-        <div className="min-h-screen bg-gray-100 p-10">
+export default function Dashboard() {
+  return (
+    <div className="min-h-screen bg-gray-100">
 
-            {/* Header */}
-            <h1 className="text-3xl font-bold text-red-700">
-                Campus Exchange
-            </h1>
+      {/* Navbar */}
 
-            {/* Welcome Section */}
-            <div className="mt-10">
-                <h2 className="text-4xl font-bold">
-                    Welcome Back!
-                </h2>
+      <nav className="bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
 
-                <p className="mt-2 text-gray-500">
-                    What would you like to do today?
-                </p>
-            </div>
+          <h1 className="text-3xl font-bold text-red-700">
+            Campus Exchange
+          </h1>
 
-            {/* Cards */}
-            <div className="mt-10 flex justify-center gap-8">
+          <div className="flex items-center gap-8">
 
-                {/* Browse Marketplace Card */}
-                <div className="w-96 rounded-xl bg-white p-8 shadow-lg">
+            <button className="font-medium hover:text-red-600">
+              Home
+            </button>
 
-                    <div className="flex justify-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">
+            <button className="font-medium hover:text-red-600">
+              Browse
+            </button>
 
-                        </div>
-                    </div>
+            <button className="font-medium hover:text-red-600">
+              Activity
+            </button>
 
-                    <h2 className="mt-6 text-center text-2xl font-bold">
-                        Browse Marketplace
-                    </h2>
+            <User
+              size={30}
+              className="cursor-pointer text-blue-500"
+            />
 
-                    <p className="mt-4 text-center text-gray-500">
-                        Explore textbooks, electronics, furniture, bikes,
-                        clothing, and more posted by UML students.
-                    </p>
+          </div>
+        </div>
+      </nav>
 
-                    <div className="mt-8 flex justify-center">
-                        <Button className="bg-green-600 hover:bg-green-700"
-                        onClick={() => setPage("browse")}>
-                            Start Shopping
-                        </Button>
-                    </div>
+      {/* Main */}
 
-                </div>
+      <div className="mx-auto max-w-7xl px-8 py-10">
 
-                {/* Sell Item Card */}
-                <div className="w-96 rounded-xl bg-white p-8 shadow-lg">
+        <h2 className="text-5xl font-bold text-sky-200">
+          Welcome Back!
+        </h2>
 
-                    <div className="flex justify-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-yellow-100 text-4xl">
+        <p className="mt-2 text-gray-600">
+          What would you like to do today?
+        </p>
 
-                        </div>
-                    </div>
+        {/* Cards */}
 
-                    <h2 className="mt-6 text-center text-2xl font-bold">
-                        Sell an Item
-                    </h2>
+        <div className="mt-10 grid gap-8 md:grid-cols-2">
 
-                    <p className="mt-4 text-center text-gray-500">
-                        List your unused items quickly and safely
-                        for other UML students.
-                    </p>
+          {/* Browse */}
 
-                    <div className="mt-8 flex justify-center">
-                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-black"
-                        onClick={() => setPage("sell")}>
-                            Create Listing
-                        </Button>
-                    </div>
+          <div className="rounded-3xl bg-white p-10 shadow-lg">
 
-                </div>
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+
+              <ShoppingBag
+                size={38}
+                className="text-green-700"
+              />
 
             </div>
 
+            <h3 className="mt-8 text-center text-3xl font-bold text-sky-200">
+              Browse Marketplace
+            </h3>
+
+            <p className="mt-4 text-center text-gray-500">
+              Explore textbooks, electronics, furniture,
+              bikes, clothing, and more posted by UML students.
+            </p>
+
+            <div className="mt-8 flex justify-center">
+
+              <Button className="rounded-full bg-green-700 hover:bg-green-800">
+                Start Shopping →
+              </Button>
+
+            </div>
+
+          </div>
+
+          {/* Sell */}
+
+          <div className="rounded-3xl bg-white p-10 shadow-lg">
+
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-yellow-100">
+
+              <Plus
+                size={40}
+                className="text-yellow-600"
+              />
+
+            </div>
+
+            <h3 className="mt-8 text-center text-3xl font-bold text-sky-200">
+              Sell an Item
+            </h3>
+
+            <p className="mt-4 text-center text-gray-500">
+              List your unused items quickly and safely
+              for other UML students.
+            </p>
+
+            <div className="mt-8 flex justify-center">
+
+              <Button className="rounded-full bg-yellow-400 text-black hover:bg-yellow-500">
+                Create Listing →
+              </Button>
+
+            </div>
+
+          </div>
 
         </div>
-    );
+
+        {/* Statistics */}
+
+        <div className="mt-10 rounded-2xl bg-white shadow-lg">
+
+          <div className="grid grid-cols-3 divide-x text-center">
+
+            <div className="py-8">
+              <h3 className="text-3xl font-bold text-green-700">
+                1,250
+              </h3>
+
+              <p className="text-gray-500">
+                Active Listings
+              </p>
+            </div>
+
+            <div className="py-8">
+              <h3 className="text-3xl font-bold text-green-700">
+                950
+              </h3>
+
+              <p className="text-gray-500">
+                Verified Students
+              </p>
+            </div>
+
+            <div className="py-8">
+              <h3 className="text-3xl font-bold text-green-700">
+                320
+              </h3>
+
+              <p className="text-gray-500">
+                Items Sold This Month
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 }
+
+ss
