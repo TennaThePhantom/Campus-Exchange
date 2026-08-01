@@ -73,17 +73,17 @@ export default function Dashboard({ setPage }) {
       <div className="mt-12 grid grid-cols-3 overflow-hidden rounded-3xl bg-white shadow-lg">
 
         <div className="border-r p-8 text-center">
-          <h3 className="text-5xl font-bold text-green-700">1,250</h3>
+          <h3 className="text-5xl font-bold text-green-700">10</h3>
           <p className="mt-2 text-gray-500">Active Listings</p>
         </div>
 
         <div className="border-r p-8 text-center">
-          <h3 className="text-5xl font-bold text-green-700">950</h3>
+          <h3 className="text-5xl font-bold text-green-700">5</h3>
           <p className="mt-2 text-gray-500">Verified Students</p>
         </div>
 
         <div className="p-8 text-center">
-          <h3 className="text-5xl font-bold text-green-700">320</h3>
+          <h3 className="text-5xl font-bold text-green-700">3</h3>
           <p className="mt-2 text-gray-500">Items Sold This Month</p>
         </div>
 
