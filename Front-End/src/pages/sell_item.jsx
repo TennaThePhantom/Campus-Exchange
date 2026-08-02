@@ -7,8 +7,13 @@ import { Camera, ArrowUp, IdCard } from "lucide-react";
 
 function SellItem({setPage}) {
     return (
-        <div className="min-h-screen bg-base-200">
-
+        <div className="min-h-screen bg-base-200"
+            style={{
+                backgroundImage:
+                "linear-gradient(rgba(219,234,254,0.3), rgba(191,219,254,0.6)), url('/hero-placeholder.jpg')",
+                backgroundColor: "#bfdbfe",
+                }}
+                >
             <nav className="navbar bg-base-100 shadow-md px-8">
                 <button
                 type="button"
