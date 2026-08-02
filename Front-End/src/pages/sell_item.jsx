@@ -23,11 +23,11 @@ function SellItem({setPage}) {
             </div>
             
 
-<div className="flex items-start gap-100">
+<div className="flex flex-col lg:flex-row items-start gap-8">
     <div className="flex flex-col gap-3"> 
 
-        <div className ="grid grid-cols-2 gap-6">
-            <div className="pt-8 pl-8 w-96 flex flex-col">
+        <div className ="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="pt-8 pl-8 w-full max-w-md flex flex-col">
                 <label className="label" >
                     <span className="label-text">Title </span>
                     </label>
@@ -118,7 +118,7 @@ function SellItem({setPage}) {
 
 
 
-            <label className=" flex flex-col h-115 w-175 cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center">
+            <label className=" flex flex-col h-[450px] w-full maxs-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center">
             <Camera className="h-12 w-12 text-primary" />
             <p className="mt-3">Upload Images</p>
             <input
@@ -135,10 +135,10 @@ function SellItem({setPage}) {
                 <textarea
         
                 placeholder="Please enter a detailed description of your listed item."
-                className="textarea textarea-bordered w-170 "
+                className="textarea textarea-bordered w-full h-[450px] "
                 ></textarea>
                 
-                <div className="flex gap-4 mt-6 pl-15">
+                <div className="flex flex-col sm:flex-row gap-4 mt-6 pl-15">
                  <button type="submit" className=" btn btn-primary w-70">
                         List Item
                     </button>
