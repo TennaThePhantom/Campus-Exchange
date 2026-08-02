@@ -1,3 +1,9 @@
+/* 
+  Notes from Daniyal August 1:
+  I made a quick UI change for the slider ring, changing it from standard green to a light blue.
+  I did this to match the theme we have going around of light blue
+*/
+
 import { Slider as SliderPrimitive } from "@base-ui/react/slider"
 
 import { cn } from "@/lib/utils"
@@ -37,9 +43,9 @@ function Slider({
         </SliderPrimitive.Track>
         {Array.from({ length: _values.length }, (_, index) => (
           <SliderPrimitive.Thumb
-            data-slot="slider-thumb"
-            key={index}
-            className="relative block size-3 shrink-0 rounded-full border border-ring bg-white ring-ring/50 transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50" />
+          data-slot="slider-thumb"
+          key={index}
+          className="relative block size-3 shrink-0 rounded-full border border-sky-300 bg-white ring-sky-300/50 transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50" />
         ))}
       </SliderPrimitive.Control>
     </SliderPrimitive.Root>
