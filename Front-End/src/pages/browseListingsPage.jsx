@@ -7,9 +7,15 @@
 	is empty, all results will show. As someone types in letters, 
 	they will become more and more filtered
 
+	Notes from Daniyal August 1:
+	I got the filters to start working now, as well as changing 
+	the colors of the filter stuff to our background color theme. 
+	I was having some issues getting the listings to show up 
+	after getting filtering to work, but it seems good now
+
 */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +27,9 @@ import { Card, CardContent } from "@/components/ui/card";
 export default function BrowseListings({ setPage }) {
 	const [searchQuery, setSearchQuery] = useState("");
 
+	const checkboxClass =
+		"border-sky-300 data-checked:bg-sky-300 data-checked:border-sky-300";
+
 	// Mock data
 	const listings = [
 		{
@@ -28,43 +37,125 @@ export default function BrowseListings({ setPage }) {
 			title: "MacBook Air 2020",
 			price: "$250",
 			location: "North Campus",
+			category: "Electronics",
 		},
 		{
 			id: 2,
 			title: "TI-84 Plus Calculator",
 			price: "$50",
 			location: "East Campus",
+			category: "Electronics",
 		},
 		{
 			id: 3,
 			title: "Old Windows Laptop",
 			price: "$40",
 			location: "East Campus",
+			category: "Electronics",
 		},
 		{
 			id: 4,
 			title: "White Ottoman Chair",
 			price: "$150",
 			location: "South Campus",
+			category: "Furniture",
 		},
 		{
 			id: 5,
 			title: "Calculus 2 Textbook",
 			price: "Free",
 			location: "North Campus",
+			category: "Books",
 		},
 		{
 			id: 6,
 			title: "Bella Air Fryer - Used",
 			price: "$25",
 			location: "South Campus",
+			category: "Appliances",
 		},
 	];
 
-	// filters listings by name, changes all letters to lowercase, making it case insensitive
-	const filteredListings = listings.filter((item) =>
-		item.title.toLowerCase().includes(searchQuery.toLowerCase())
-	);
+	// categories for filters
+
+	const ALL_CATEGORIES = ["Books", "Electronics", "Furniture", "Clothing", "Appliances"];
+	const ALL_LOCATIONS = ["South Campus", "North Campus", "East Campus"];
+	const SORTS = ["New", "Price Ascending", "Price Descending"];
+
+	const [keywords, setKeywords] = useState([]);
+	const [categories, setCategories] = useState(ALL_CATEGORIES);
+	const [locations, setLocations] = useState(ALL_LOCATIONS);
+	const [priceRange, setPriceRange] = useState([0, 999]);
+	const [sort, setSort] = useState("New");
+
+	const allItemsChecked = categories.length === ALL_CATEGORIES.length;
+
+	const [dateAdded, setDateAdded] = useState("newest");
+
+
+	// adding keywords to search
+	function addKeywordFromSearch() {
+		const k = searchQuery.trim();
+		if (k && !keywords.includes(k)) setKeywords([...keywords, k]);
+		setSearchQuery("");
+	}
+
+	// removing keywords
+	function removeKeyword(k) {
+		setKeywords(keywords.filter((w) => w !== k));
+	}
+
+	// toggling categories
+	function toggleCategory(cat) {
+		setCategories((prev) =>
+			prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+		);
+	}
+
+	// toggling all items, checks off everything if "all categories" is selected
+	function toggleAllItems(checked) {
+		setCategories(checked ? ALL_CATEGORIES : []);
+	}
+
+	// toggling location
+	function toggleLocation(loc) {
+		setLocations((prev) =>
+			prev.includes(loc) ? prev.filter((l) => l !== loc) : [...prev, loc]
+		);
+	}
+
+	// price ascending/descending
+	function parsePrice(priceStr) {
+		if (priceStr === "Free") return 0;
+		return Number(priceStr.replace("$", ""));
+	}
+
+	// filters listings by name, price, category, etc
+	const filteredListings = useMemo(() => {
+		let items = listings.filter((item) => {
+			const matchesSearch =
+				searchQuery.trim() === "" ||
+				item.title.toLowerCase().includes(searchQuery.toLowerCase());
+			const matchesKeywords =
+				keywords.length === 0 ||
+				keywords.some((k) => item.title.toLowerCase().includes(k.toLowerCase()));
+			const matchesCategory = categories.includes(item.category);
+			const matchesLocation = locations.includes(item.location);
+			const matchesPrice =
+				parsePrice(item.price) >= priceRange[0] && parsePrice(item.price) <= priceRange[1];
+
+			return matchesSearch && matchesKeywords && matchesCategory && matchesLocation && matchesPrice;
+		});
+
+		if (sort === "Price Ascending") {
+			items = [...items].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+		}
+		if (sort === "Price Descending") {
+			items = [...items].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+		}
+
+		return items;
+	}, [searchQuery, keywords, categories, locations, priceRange, sort]);
 
 	return (
 		<div className="min-h-svh bg-sky-50 text-neutral-900 font-sans pb-12">
@@ -110,8 +201,9 @@ export default function BrowseListings({ setPage }) {
 						type="text"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeywordFromSearch())}
 						placeholder="Search Textbooks, Electronics, Furniture, etc..."
-						className="w-full rounded-full border-sky-200 bg-white py-6 pl-12 pr-4 text-base focus-visible:ring-sky-300 shadow-sm"
+						className="w-full rounded-full border-sky-200 bg-white py-6 pl-14 pr-4 text-base focus-visible:ring-sky-300 shadow-sm"
 					/>
 				</div>
 
@@ -125,12 +217,13 @@ export default function BrowseListings({ setPage }) {
 								Keywords
 							</h3>
 							<div className="flex flex-wrap gap-2">
-								{["Books", "Electronics", "Furniture"].map((keyword) => (
+								{keywords.map((keyword) => (
 									<Badge
-										key={keyword}
-										variant="secondary"
-										className="bg-sky-100 text-neutral-700 hover:bg-sky-200 cursor-pointer font-normal rounded-md px-2 py-1"
-									>
+									key={keyword}
+									variant="secondary"
+									onClick={() => removeKeyword(keyword)}
+									className="bg-sky-100 text-neutral-700 hover:bg-sky-200 cursor-pointer font-normal rounded-md px-2 py-1"
+								>
 										{keyword} <X className="ml-1 size-3" />
 									</Badge>
 								))}
@@ -139,19 +232,24 @@ export default function BrowseListings({ setPage }) {
 
 						{/* Categories */}
 						<div className="mb-8 space-y-3">
-							{["All Items", "Books", "Electronics"].map((category, idx) => (
+							<div className="flex items-center gap-3">
+								<Checkbox
+									id="cat-all"
+									checked={categories.length === ALL_CATEGORIES.length}
+									onCheckedChange={toggleAllItems}
+									className={checkboxClass}
+								/>
+								<label htmlFor="cat-all" className="text-sm font-medium leading-none text-neutral-700">All Items</label>
+							</div>
+							{ALL_CATEGORIES.map((category) => (
 								<div key={category} className="flex items-center gap-3">
 									<Checkbox
-										id={`cat-${idx}`}
-										defaultChecked={idx === 0}
-										className="border-sky-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+										id={`cat-${category}`}
+										checked={categories.includes(category)}
+										onCheckedChange={() => toggleCategory(category)}
+										className={checkboxClass}
 									/>
-									<label
-										htmlFor={`cat-${idx}`}
-										className="text-sm font-medium leading-none text-neutral-700"
-									>
-										{category}
-									</label>
+									<label htmlFor={`cat-${category}`} className="text-sm font-medium leading-none text-neutral-700">{category}</label>
 								</div>
 							))}
 						</div>
@@ -160,13 +258,14 @@ export default function BrowseListings({ setPage }) {
 						<div className="mb-8">
 							<div className="mb-4 flex items-center justify-between text-sm text-neutral-700">
 								<span className="font-semibold text-neutral-900">Price</span>
-								<span>$0-999</span>
+								<span>${priceRange[0]}-{priceRange[1]}</span>
 							</div>
 							<Slider
-								defaultValue={[0, 999]}
-								max={1000}
-								step={1}
-								className="w-full [&_[role=slider]]:bg-red-600"
+  								value={priceRange}
+  								onValueChange={setPriceRange}
+  								max={999}
+  								step={1}
+								className="w-full [&_[data-slot=slider-range]]:bg-sky-300"
 							/>
 						</div>
 
@@ -175,23 +274,19 @@ export default function BrowseListings({ setPage }) {
 							<h3 className="mb-3 text-sm font-semibold text-neutral-900">
 								Location
 							</h3>
-							{["South Campus", "North Campus", "East Campus"].map(
-								(location, idx) => (
-									<div key={location} className="flex items-center gap-3">
-										<Checkbox
-											id={`loc-${idx}`}
-											defaultChecked
-											className="border-sky-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-										/>
-										<label
-											htmlFor={`loc-${idx}`}
-											className="text-sm font-medium leading-none text-neutral-700"
-										>
-											{location}
-										</label>
-									</div>
-								),
-							)}
+							{ALL_LOCATIONS.map((location) => (
+								<div key={location} className="flex items-center gap-3">
+									<Checkbox
+										id={`loc-${location}`}
+										checked={locations.includes(location)}
+										onCheckedChange={() => toggleLocation(location)}
+										className={checkboxClass}
+									/>
+									<label htmlFor={`loc-${location}`} className="text-sm font-medium leading-none text-neutral-700">
+										{location}
+									</label>
+								</div>
+							))}
 						</div>
 
 						{/* Date */}
@@ -202,25 +297,22 @@ export default function BrowseListings({ setPage }) {
 							<div className="flex items-center gap-3">
 								<Checkbox
 									id="date-oldest"
-									className="border-sky-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+									checked={dateAdded === "oldest"}
+									onCheckedChange={() => setDateAdded("oldest")}
+									className={checkboxClass}
 								/>
-								<label
-									htmlFor="date-oldest"
-									className="text-sm font-medium leading-none text-neutral-700"
-								>
+								<label htmlFor="date-oldest" className="text-sm font-medium leading-none text-neutral-700">
 									Oldest
 								</label>
 							</div>
 							<div className="flex items-center gap-3">
 								<Checkbox
 									id="date-newest"
-									defaultChecked
-									className="border-sky-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+									checked={dateAdded === "newest"}
+									onCheckedChange={() => setDateAdded("newest")}
+									className={checkboxClass}
 								/>
-								<label
-									htmlFor="date-newest"
-									className="text-sm font-medium leading-none text-neutral-700"
-								>
+								<label htmlFor="date-newest" className="text-sm font-medium leading-none text-neutral-700">
 									Newest
 								</label>
 							</div>
@@ -231,27 +323,21 @@ export default function BrowseListings({ setPage }) {
 					<main className="col-span-1 lg:col-span-3">
 						{/* Sort Controls */}
 						<div className="mb-6 flex flex-wrap justify-end gap-2">
-							<Button className="bg-neutral-900 text-white hover:bg-neutral-800">
-								<Check className="mr-1 size-4" /> New
-							</Button>
-							<Button
-								variant="outline"
-								className="border-sky-200 bg-white text-neutral-600 hover:bg-sky-50"
-							>
-								Price ascending
-							</Button>
-							<Button
-								variant="outline"
-								className="border-sky-200 bg-white text-neutral-600 hover:bg-sky-50"
-							>
-								Price descending
-							</Button>
-							<Button
-								variant="outline"
-								className="border-sky-200 bg-white text-neutral-600 hover:bg-sky-50"
-							>
-								Rating
-							</Button>
+							{SORTS.map((s) => (
+								<Button
+									key={s}
+									onClick={() => setSort(s)}
+									variant={sort === s ? "default" : "outline"}
+									className={
+										sort === s
+											? "bg-neutral-900 text-white hover:bg-neutral-800"
+											: "border-sky-200 bg-white text-neutral-600 hover:bg-sky-50"
+									}
+								>
+									{sort === s && <Check className="mr-1 size-4" />}
+									{s}
+								</Button>
+							))}
 						</div>
 
 						{/* Grid */}
