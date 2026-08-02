@@ -1,18 +1,26 @@
 /*
 	Notes from Daniyal July 27:
-	I made the search bar feature work, since someone 
+	I made the search bar feature work, since someone
 	else had already done 98% of it, it was very quick. All I
-	had to do was make a variable called filteredListings, and 
-	then replace it with the regular listings. when the search bar 
-	is empty, all results will show. As someone types in letters, 
+	had to do was make a variable called filteredListings, and
+	then replace it with the regular listings. when the search bar
+	is empty, all results will show. As someone types in letters,
 	they will become more and more filtered
 
 	Notes from Daniyal August 1:
-	I got the filters to start working now, as well as changing 
-	the colors of the filter stuff to our background color theme. 
-	I was having some issues getting the listings to show up 
+	I got the filters to start working now, as well as changing
+	the colors of the filter stuff to our background color theme.
+	I was having some issues getting the listings to show up
 	after getting filtering to work, but it seems good now
 
+*/
+/*
+  Notes from Diya 08/02 :
+
+  I updated the Browse Listings page to use React Router for navigation.
+  The Home, Sell, and Log Out buttons now redirect users to the correct
+  pages instead of using the old setPage() function. This makes navigation
+  smoother and allows the app to switch pages without requiring a refresh.
 */
 
 import React, { useMemo, useState } from "react";
@@ -23,8 +31,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
-export default function BrowseListings({ setPage }) {
+export default function BrowseListings() {
+	const navigate = useNavigate();
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const checkboxClass =
@@ -164,14 +174,14 @@ export default function BrowseListings({ setPage }) {
 				<div className="flex gap-8 text-sm font-medium">
 					<button
 						type="button"
-						onClick={() => setPage("dashboard")}
+						onClick={() => navigate("/dashboard")}
 						className="hover:text-red-600 transition-colors"
 					>
 						Home
 					</button>
 					<button
 						type="button"
-						onClick={() => setPage("sell")}
+						onClick={() => navigate("/sell")}
 						className="hover:text-red-600 transition-colors"
 					>
 						Sell
@@ -179,9 +189,13 @@ export default function BrowseListings({ setPage }) {
 					<a href="#" className="hover:text-red-600 transition-colors">
 						Messages
 					</a>
-					<a href="#" className="hover:text-red-600 transition-colors">
+					<button
+						type="button"
+						onClick={() => navigate("/signin")}
+						className="hover:text-red-600 transition-colors"
+					>
 						Log Out
-					</a>
+					</button>
 				</div>
 				<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
 			</nav>
@@ -219,11 +233,11 @@ export default function BrowseListings({ setPage }) {
 							<div className="flex flex-wrap gap-2">
 								{keywords.map((keyword) => (
 									<Badge
-									key={keyword}
-									variant="secondary"
-									onClick={() => removeKeyword(keyword)}
-									className="bg-sky-100 text-neutral-700 hover:bg-sky-200 cursor-pointer font-normal rounded-md px-2 py-1"
-								>
+										key={keyword}
+										variant="secondary"
+										onClick={() => removeKeyword(keyword)}
+										className="bg-sky-100 text-neutral-700 hover:bg-sky-200 cursor-pointer font-normal rounded-md px-2 py-1"
+									>
 										{keyword} <X className="ml-1 size-3" />
 									</Badge>
 								))}
@@ -261,10 +275,10 @@ export default function BrowseListings({ setPage }) {
 								<span>${priceRange[0]}-{priceRange[1]}</span>
 							</div>
 							<Slider
-  								value={priceRange}
-  								onValueChange={setPriceRange}
-  								max={999}
-  								step={1}
+								value={priceRange}
+								onValueChange={setPriceRange}
+								max={999}
+								step={1}
 								className="w-full [&_[data-slot=slider-range]]:bg-sky-300"
 							/>
 						</div>
