@@ -24,6 +24,11 @@ function SellItem({setPage}) {
             
 
 <div className="flex flex-col lg:flex-row items-start gap-8">
+    style={{
+        backgroundImage:
+          "linear-gradient(rgba(219,234,254,0.3), rgba(191,219,254,0.6)), url('/hero-placeholder.jpg')",
+        backgroundColor: "#bfdbfe",
+      }}
     <div className="flex flex-col gap-3"> 
 
         <div className ="grid grid-cols-1 md:grid-cols-2 gap-6">
