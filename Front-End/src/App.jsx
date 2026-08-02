@@ -1,52 +1,38 @@
-import { useState } from "react";
+
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import LandingPage from "@/pages/landing_page";
 import RegisterPage from "@/pages/register_page";
 import UserSignIn from "@/pages/user_sign_in";
 import Dashboard from "@/pages/Dashboard";
 import SellItem from "@/pages/sell_item";
-import VerificationPage from "./pages/verification_page";
-import BrowseListings from "./pages/browseListingsPage";
+import VerificationPage from "@/pages/verification_page";
+import BrowseListings from "@/pages/browseListingsPage";
 
 function App() {
-	const [page, setPage] = useState("landing");
+  return (
+    <Routes>
 
-	if (page === "register") {
-		return (
-			<RegisterPage
-				onRegistered={() => setPage("verification")}
-				onSignInClick={() => setPage("signin")}
-			/>
-		);
-	}
+      {/* Landing Page */}
+      <Route path="/" element={<LandingPage />} />
 
-	if (page === "signin") {
-		return (
-			<UserSignIn
-				onSignedIn={() => setPage("dashboard")}
-				onCreateAccountClick={() => setPage("register")}
-			/>
-		);
-	}
+      {/* Authentication */}
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/signin" element={<UserSignIn />} />
+      <Route path="/verification" element={<VerificationPage />} />
 
-	if (page === "dashboard") {
-		return <Dashboard setPage={setPage} />;
-	}
-	if (page === "verification") {
-		return <VerificationPage setPage={setPage} />;
-	}
-	if (page === "sell") {
-		return <SellItem setPage={setPage} />;
-	}
-	if (page === "browse") {
-		return <BrowseListings setPage={setPage} />;
-	}
-	return (
-		<LandingPage
-			onRegisterClick={() => setPage("register")}
-			onSignInClick={() => setPage("signin")}
-			onDemoClick={() => setPage("dashboard")}
-		/>
-	);
+      {/* Dashboard */}
+      <Route path="/dashboard" element={<Dashboard />} />
+
+      {/* Marketplace */}
+      <Route path="/browse" element={<BrowseListings />} />
+      <Route path="/sell" element={<SellItem />} />
+
+      {/* If URL doesn't exist, go back to landing page */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+
+    </Routes>
+  );
 }
 
 export default App;
