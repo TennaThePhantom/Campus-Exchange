@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export default function Dashboard({ setPage }) {
+export default function Dashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-100 p-10">
 
@@ -17,8 +20,8 @@ export default function Dashboard({ setPage }) {
       {/* Cards */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 
-        {/* Browse Marketplace Card */}
-        <div className="rounded-3xl bg-white p-10 shadow-lg text-center">
+        {/* Browse Marketplace */}
+        <div className="rounded-3xl bg-white p-10 text-center shadow-lg">
 
           <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
             <ShoppingBag size={42} className="text-green-700" />
@@ -34,7 +37,7 @@ export default function Dashboard({ setPage }) {
           </p>
 
           <Button
-            onClick={() => setPage("browse")}
+            onClick={() => navigate("/browse")}
             className="mt-10 rounded-full bg-green-600 px-8 py-6 text-lg hover:bg-green-700"
           >
             Start Shopping →
@@ -42,8 +45,8 @@ export default function Dashboard({ setPage }) {
 
         </div>
 
-        {/* Sell Item Card */}
-        <div className="rounded-3xl bg-white p-10 shadow-lg text-center">
+        {/* Sell Item */}
+        <div className="rounded-3xl bg-white p-10 text-center shadow-lg">
 
           <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-yellow-100">
             <Plus size={42} className="text-yellow-700" />
@@ -54,12 +57,11 @@ export default function Dashboard({ setPage }) {
           </h2>
 
           <p className="mt-6 text-2xl text-gray-600">
-            List your unused items quickly and safely for other UML
-            students.
+            List your unused items quickly and safely for other UML students.
           </p>
 
           <Button
-            onClick={() => setPage("sell")}
+            onClick={() => navigate("/sell")}
             className="mt-10 rounded-full bg-yellow-500 px-8 py-6 text-lg text-black hover:bg-yellow-600"
           >
             Create Listing →
