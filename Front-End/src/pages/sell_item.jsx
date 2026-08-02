@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, ArrowUp, IdCard } from "lucide-react";
 
-function SellItem() {
+function SellItem({setPage}) {
     return (
         <div className="min-h-screen bg-base-200">
 
@@ -13,7 +13,7 @@ function SellItem() {
                 <button
                 type="button"
                 className="btn-ghost text-xl"
-                onClick={() => console.log("Home clicked")}
+                onClick={() => setPage("dashboard")}
                 >
                     Home
                 </button>

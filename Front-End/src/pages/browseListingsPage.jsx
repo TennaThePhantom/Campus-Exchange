@@ -1,0 +1,389 @@
+/*
+	Notes from Daniyal July 27:
+	I made the search bar feature work, since someone
+	else had already done 98% of it, it was very quick. All I
+	had to do was make a variable called filteredListings, and
+	then replace it with the regular listings. when the search bar
+	is empty, all results will show. As someone types in letters,
+	they will become more and more filtered
+
+	Notes from Daniyal August 1:
+	I got the filters to start working now, as well as changing
+	the colors of the filter stuff to our background color theme.
+	I was having some issues getting the listings to show up
+	after getting filtering to work, but it seems good now
+
+*/
+/*
+  Notes from Diya 08/02 :
+
+  I updated the Browse Listings page to use React Router for navigation.
+  The Home, Sell, and Log Out buttons now redirect users to the correct
+  pages instead of using the old setPage() function. This makes navigation
+  smoother and allows the app to switch pages without requiring a refresh.
+*/
+
+import React, { useMemo, useState } from "react";
+import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+
+export default function BrowseListings() {
+	const navigate = useNavigate();
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const checkboxClass =
+		"border-sky-300 data-checked:bg-sky-300 data-checked:border-sky-300";
+
+	// Mock data
+	const listings = [
+		{
+			id: 1,
+			title: "MacBook Air 2020",
+			price: "$250",
+			location: "North Campus",
+			category: "Electronics",
+		},
+		{
+			id: 2,
+			title: "TI-84 Plus Calculator",
+			price: "$50",
+			location: "East Campus",
+			category: "Electronics",
+		},
+		{
+			id: 3,
+			title: "Old Windows Laptop",
+			price: "$40",
+			location: "East Campus",
+			category: "Electronics",
+		},
+		{
+			id: 4,
+			title: "White Ottoman Chair",
+			price: "$150",
+			location: "South Campus",
+			category: "Furniture",
+		},
+		{
+			id: 5,
+			title: "Calculus 2 Textbook",
+			price: "Free",
+			location: "North Campus",
+			category: "Books",
+		},
+		{
+			id: 6,
+			title: "Bella Air Fryer - Used",
+			price: "$25",
+			location: "South Campus",
+			category: "Appliances",
+		},
+	];
+
+	// categories for filters
+
+	const ALL_CATEGORIES = ["Books", "Electronics", "Furniture", "Clothing", "Appliances"];
+	const ALL_LOCATIONS = ["South Campus", "North Campus", "East Campus"];
+	const SORTS = ["New", "Price Ascending", "Price Descending"];
+
+	const [keywords, setKeywords] = useState([]);
+	const [categories, setCategories] = useState(ALL_CATEGORIES);
+	const [locations, setLocations] = useState(ALL_LOCATIONS);
+	const [priceRange, setPriceRange] = useState([0, 999]);
+	const [sort, setSort] = useState("New");
+
+	const allItemsChecked = categories.length === ALL_CATEGORIES.length;
+
+	const [dateAdded, setDateAdded] = useState("newest");
+
+
+	// adding keywords to search
+	function addKeywordFromSearch() {
+		const k = searchQuery.trim();
+		if (k && !keywords.includes(k)) setKeywords([...keywords, k]);
+		setSearchQuery("");
+	}
+
+	// removing keywords
+	function removeKeyword(k) {
+		setKeywords(keywords.filter((w) => w !== k));
+	}
+
+	// toggling categories
+	function toggleCategory(cat) {
+		setCategories((prev) =>
+			prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+		);
+	}
+
+	// toggling all items, checks off everything if "all categories" is selected
+	function toggleAllItems(checked) {
+		setCategories(checked ? ALL_CATEGORIES : []);
+	}
+
+	// toggling location
+	function toggleLocation(loc) {
+		setLocations((prev) =>
+			prev.includes(loc) ? prev.filter((l) => l !== loc) : [...prev, loc]
+		);
+	}
+
+	// price ascending/descending
+	function parsePrice(priceStr) {
+		if (priceStr === "Free") return 0;
+		return Number(priceStr.replace("$", ""));
+	}
+
+	// filters listings by name, price, category, etc
+	const filteredListings = useMemo(() => {
+		let items = listings.filter((item) => {
+			const matchesSearch =
+				searchQuery.trim() === "" ||
+				item.title.toLowerCase().includes(searchQuery.toLowerCase());
+			const matchesKeywords =
+				keywords.length === 0 ||
+				keywords.some((k) => item.title.toLowerCase().includes(k.toLowerCase()));
+			const matchesCategory = categories.includes(item.category);
+			const matchesLocation = locations.includes(item.location);
+			const matchesPrice =
+				parsePrice(item.price) >= priceRange[0] && parsePrice(item.price) <= priceRange[1];
+
+			return matchesSearch && matchesKeywords && matchesCategory && matchesLocation && matchesPrice;
+		});
+
+		if (sort === "Price Ascending") {
+			items = [...items].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+		}
+		if (sort === "Price Descending") {
+			items = [...items].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+		}
+
+		return items;
+	}, [searchQuery, keywords, categories, locations, priceRange, sort]);
+
+	return (
+		<div className="min-h-svh bg-sky-50 text-neutral-900 font-sans pb-12">
+			{/* Navigation Bar */}
+			<nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-sky-200">
+				<div className="flex gap-8 text-sm font-medium">
+					<button
+						type="button"
+						onClick={() => navigate("/dashboard")}
+						className="hover:text-red-600 transition-colors"
+					>
+						Home
+					</button>
+					<button
+						type="button"
+						onClick={() => navigate("/sell")}
+						className="hover:text-red-600 transition-colors"
+					>
+						Sell
+					</button>
+					<a href="#" className="hover:text-red-600 transition-colors">
+						Messages
+					</a>
+					<button
+						type="button"
+						onClick={() => navigate("/signin")}
+						className="hover:text-red-600 transition-colors"
+					>
+						Log Out
+					</button>
+				</div>
+				<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
+			</nav>
+
+			{/* Header & Search */}
+			<div className="px-8 py-8 max-w-[1400px] mx-auto">
+				<h1 className="mb-6 text-4xl font-black text-neutral-900">
+					Browse Listings
+				</h1>
+
+				<div className="relative mb-8">
+					<Search
+						className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-neutral-500"
+						strokeWidth={2}
+					/>
+					<Input
+						type="text"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeywordFromSearch())}
+						placeholder="Search Textbooks, Electronics, Furniture, etc..."
+						className="w-full rounded-full border-sky-200 bg-white py-6 pl-14 pr-4 text-base focus-visible:ring-sky-300 shadow-sm"
+					/>
+				</div>
+
+				{/* main Content Layout */}
+				<div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+					{/* sidebar / Filters */}
+					<aside className="col-span-1 h-fit rounded-lg border border-sky-200 bg-white p-6 shadow-sm">
+						{/* keywords */}
+						<div className="mb-8">
+							<h3 className="mb-3 text-sm font-semibold text-neutral-900">
+								Keywords
+							</h3>
+							<div className="flex flex-wrap gap-2">
+								{keywords.map((keyword) => (
+									<Badge
+										key={keyword}
+										variant="secondary"
+										onClick={() => removeKeyword(keyword)}
+										className="bg-sky-100 text-neutral-700 hover:bg-sky-200 cursor-pointer font-normal rounded-md px-2 py-1"
+									>
+										{keyword} <X className="ml-1 size-3" />
+									</Badge>
+								))}
+							</div>
+						</div>
+
+						{/* Categories */}
+						<div className="mb-8 space-y-3">
+							<div className="flex items-center gap-3">
+								<Checkbox
+									id="cat-all"
+									checked={categories.length === ALL_CATEGORIES.length}
+									onCheckedChange={toggleAllItems}
+									className={checkboxClass}
+								/>
+								<label htmlFor="cat-all" className="text-sm font-medium leading-none text-neutral-700">All Items</label>
+							</div>
+							{ALL_CATEGORIES.map((category) => (
+								<div key={category} className="flex items-center gap-3">
+									<Checkbox
+										id={`cat-${category}`}
+										checked={categories.includes(category)}
+										onCheckedChange={() => toggleCategory(category)}
+										className={checkboxClass}
+									/>
+									<label htmlFor={`cat-${category}`} className="text-sm font-medium leading-none text-neutral-700">{category}</label>
+								</div>
+							))}
+						</div>
+
+						{/* Price Slider */}
+						<div className="mb-8">
+							<div className="mb-4 flex items-center justify-between text-sm text-neutral-700">
+								<span className="font-semibold text-neutral-900">Price</span>
+								<span>${priceRange[0]}-{priceRange[1]}</span>
+							</div>
+							<Slider
+								value={priceRange}
+								onValueChange={setPriceRange}
+								max={999}
+								step={1}
+								className="w-full [&_[data-slot=slider-range]]:bg-sky-300"
+							/>
+						</div>
+
+						{/* Location */}
+						<div className="mb-8 space-y-3">
+							<h3 className="mb-3 text-sm font-semibold text-neutral-900">
+								Location
+							</h3>
+							{ALL_LOCATIONS.map((location) => (
+								<div key={location} className="flex items-center gap-3">
+									<Checkbox
+										id={`loc-${location}`}
+										checked={locations.includes(location)}
+										onCheckedChange={() => toggleLocation(location)}
+										className={checkboxClass}
+									/>
+									<label htmlFor={`loc-${location}`} className="text-sm font-medium leading-none text-neutral-700">
+										{location}
+									</label>
+								</div>
+							))}
+						</div>
+
+						{/* Date */}
+						<div className="space-y-3">
+							<h3 className="mb-3 text-sm font-semibold text-neutral-900">
+								Date Added
+							</h3>
+							<div className="flex items-center gap-3">
+								<Checkbox
+									id="date-oldest"
+									checked={dateAdded === "oldest"}
+									onCheckedChange={() => setDateAdded("oldest")}
+									className={checkboxClass}
+								/>
+								<label htmlFor="date-oldest" className="text-sm font-medium leading-none text-neutral-700">
+									Oldest
+								</label>
+							</div>
+							<div className="flex items-center gap-3">
+								<Checkbox
+									id="date-newest"
+									checked={dateAdded === "newest"}
+									onCheckedChange={() => setDateAdded("newest")}
+									className={checkboxClass}
+								/>
+								<label htmlFor="date-newest" className="text-sm font-medium leading-none text-neutral-700">
+									Newest
+								</label>
+							</div>
+						</div>
+					</aside>
+
+					{/* Listings Grid Area */}
+					<main className="col-span-1 lg:col-span-3">
+						{/* Sort Controls */}
+						<div className="mb-6 flex flex-wrap justify-end gap-2">
+							{SORTS.map((s) => (
+								<Button
+									key={s}
+									onClick={() => setSort(s)}
+									variant={sort === s ? "default" : "outline"}
+									className={
+										sort === s
+											? "bg-neutral-900 text-white hover:bg-neutral-800"
+											: "border-sky-200 bg-white text-neutral-600 hover:bg-sky-50"
+									}
+								>
+									{sort === s && <Check className="mr-1 size-4" />}
+									{s}
+								</Button>
+							))}
+						</div>
+
+						{/* Grid */}
+						{/* filteredListings makes the results become dynamic, responding to the search bar */}
+						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+							{filteredListings.map((item) => (
+								<Card
+									key={item.id}
+									className="overflow-hidden border-sky-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+								>
+									{/* Image Placeholder */}
+									<div className="flex h-56 w-full items-center justify-center bg-sky-100">
+										<ImageIcon
+											className="size-16 text-sky-300 opacity-50"
+											strokeWidth={1}
+										/>
+									</div>
+									<CardContent className="p-4">
+										<h4 className="mb-1 text-base font-medium text-neutral-900 line-clamp-1">
+											{item.title}
+										</h4>
+										<p className="mb-3 text-lg font-bold text-neutral-900">
+											{item.price}
+										</p>
+										<p className="text-sm text-neutral-500">{item.location}</p>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					</main>
+				</div>
+			</div>
+		</div>
+	);
+}
