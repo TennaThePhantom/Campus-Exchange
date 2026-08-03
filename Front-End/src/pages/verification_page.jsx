@@ -14,16 +14,34 @@ const VerificationPage = () => {
 	const [userCreated, setUserCreated] = useState(false);
 	const [confirmationStep, setConfirmationStep] = useState(false);
 
-	// Handle image upload and convert to base64
+	// Handle image upload, validate file type, and convert to base64
 	const handleImageUpload = (e) => {
 		const file = e.target.files[0];
 		if (!file) return;
+
+		// Check if the file is PNG or JPEG
+		const validTypes = ["image/png", "image/jpeg", "image/jpg"];
+		if (!validTypes.includes(file.type)) {
+			setError("❌ Please upload a PNG or JPEG image only.");
+			e.target.value = ""; // Clear the file input
+			return;
+		}
+
+		// Check file size (optional) - limit to 5MB
+		if (file.size > 5 * 1024 * 1024) {
+			setError("❌ Image size must be less than 5MB.");
+			e.target.value = "";
+			return;
+		}
+
+		// Clear any previous errors
+		setError("");
 
 		const reader = new FileReader();
 		reader.onload = (event) => {
 			const base64String = event.target.result.split(",")[1];
 			setImage(base64String);
-			console.log("Image converted to base64");
+			console.log("✅ Image converted to base64");
 		};
 		reader.onerror = (error) => {
 			console.error("Error reading file:", error);
@@ -34,14 +52,12 @@ const VerificationPage = () => {
 
 	// Get the correct function URL based on environment
 	const getFunctionUrl = () => {
-		// Check if we're in local development
 		if (
 			window.location.hostname === "localhost" ||
 			window.location.hostname === "127.0.0.1"
 		) {
 			return "http://127.0.0.1:5001/campus-exchange-d47f4/us-central1/scanStudentId";
 		}
-		// Production URL
 		return "https://us-central1-campus-exchange-d47f4.cloudfunctions.net/scanStudentId";
 	};
 
@@ -134,9 +150,12 @@ const VerificationPage = () => {
 					<p className="text-muted-foreground text-sm mt-1">
 						Upload a clear photo of your UML student ID card
 					</p>
+					<p className="text-xs text-muted-foreground mt-1">
+						Accepted formats: PNG, JPEG (Max 5MB)
+					</p>
 				</div>
 
-				{/* Image Upload Section Only show if not in confirmation step */}
+				{/* Image Upload Section */}
 				{!confirmationStep && !userCreated && (
 					<div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
 						{image ? (
@@ -153,7 +172,7 @@ const VerificationPage = () => {
 									Change photo
 									<input
 										type="file"
-										accept="image/*"
+										accept="image/png, image/jpeg, image/jpg"
 										onChange={handleImageUpload}
 										className="hidden"
 									/>
@@ -170,7 +189,7 @@ const VerificationPage = () => {
 								</p>
 								<input
 									type="file"
-									accept="image/*"
+									accept="image/png, image/jpeg, image/jpg"
 									onChange={handleImageUpload}
 									className="text-sm cursor-pointer"
 								/>
@@ -179,7 +198,7 @@ const VerificationPage = () => {
 					</div>
 				)}
 
-				{/* Scan Button - Only show if not in confirmation step */}
+				{/* Scan Button */}
 				{!confirmationStep && !userCreated && (
 					<Button
 						onClick={handleScanID}
@@ -198,7 +217,7 @@ const VerificationPage = () => {
 					</Button>
 				)}
 
-				{/* Confirmation Step Show the ID when it is verified */}
+				{/* Confirmation Step */}
 				{confirmationStep && result && (
 					<div className="bg-muted p-6 rounded-lg space-y-6">
 						<h3 className="font-semibold text-center text-lg">
