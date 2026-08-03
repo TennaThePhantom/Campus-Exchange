@@ -1,11 +1,12 @@
 // working for clear photo ID haven't tested it with damage IDS yet - Tennessee
-// not connected to dashboard when user clicks on yes it should sent them to the dashboard
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { db } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-const VerificationPage = ({ setPage }) => {
+const VerificationPage = () => {
+	const navigate = useNavigate();
 	const [image, setImage] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [result, setResult] = useState(null);
@@ -265,7 +266,7 @@ const VerificationPage = ({ setPage }) => {
 						<Button
 							className="mt-4"
 							variant="outline"
-							onClick={() => setPage("dashboard")}
+							onClick={() => navigate("/dashboard")}
 						>
 							Continue to Dashboard
 						</Button>
