@@ -24,28 +24,28 @@ function SellItem({setPage}) {
                 </button>
         </nav>
             <div className="max-w-4xl ml-8 pt-8">
-                <h1 className="text-3xl font-bold mb-6">Create New Listing</h1>
+                <h1 className="text-3xl font-bold mb-6 text-black">Create New Listing</h1>
             </div>
             
 
-<div className="flex flex-col lg:flex-row items-start gap-8">
+<div className="flex flex-col lg:flex-row items-start gap-50">
     <div className="flex flex-col gap-3"> 
 
         <div className ="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="pt-8 pl-8 w-full max-w-md flex flex-col">
                 <label className="label" >
-                    <span className="label-text">Title </span>
+                    <span className="label-text text-black">Title </span>
                     </label>
                     <input
                     type="text"
                     placeholder="Example: TI-84 Calculator"
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full bg-white text-black"
                     />
                     </div>
 
              <div className="pt-8 pl-8 w-96 flex flex-col">
                 <label className="label">
-                    <span className="label-text">Price</span>
+                    <span className="label-text text-black">Price</span>
                     </label>
 
             <div className="flex items-center border rounded-lg px-3">
@@ -55,7 +55,7 @@ function SellItem({setPage}) {
                      placeholder="0"
                      min="0"
                      step="0.01"
-                     className="input input-bordered w-full"
+                     className="input input-bordered w-full bg-white text-black"
                      />
                      </div>
                      </div>
@@ -63,9 +63,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-96">
                 <label className="label" >
-                    <span className="label-text">Location </span>
+                    <span className="label-text text-black">Location </span>
                 </label>
-                <select className="select select-bordered w-full" defaultValue="">
+                <select className="select select-bordered w-full bg-white text-black" defaultValue="">
                     <option value="" disabled>
                         Select a Location
                     </option>
@@ -86,9 +86,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-96">
                 <label className="label">
-                    <span className="label-text">Category </span>
+                    <span className="label-text text-black">Category </span>
                 </label>
-                <select className="select select-borderd w-full" defaultValue="">
+                <select className="select select-borderd w-full bg-white text-black" defaultValue="">
                     <option value="" disabled>
                         Select Category
                     </option>
@@ -103,9 +103,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-96">
                 <label className="label">
-                    <span className="label-text">Condition </span>
+                    <span className="label-text text-black">Condition </span>
                 </label>
-                <select className="select select-borderd w-full" defaultValue="">
+                <select className="select select-borderd w-full bg-white text-black" defaultValue="">
                     <option value="" disabled>
                        Select Condition 
                     </option>
@@ -123,7 +123,7 @@ function SellItem({setPage}) {
 
 
 
-            <label className=" flex flex-col h-[450px] w-full maxs-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center">
+            <label className=" flex flex-col h-[350px] w-full maxs-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center bg-white text-black">
             <Camera className="h-12 w-12 text-primary" />
             <p className="mt-3">Upload Images</p>
             <input
@@ -133,14 +133,14 @@ function SellItem({setPage}) {
             />
             </label>
 </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col ml-8">
                 <label className="label" >
-                    <span className="label-text">Description</span>
+                    <span className="label-text text-black">Description</span>
                 </label>
                 <textarea
         
                 placeholder="Please enter a detailed description of your listed item."
-                className="textarea textarea-bordered w-full h-[450px] "
+                className="textarea textarea-bordered w-full h-[450px] bg-white text-black"
                 ></textarea>
                 
                 <div className="flex flex-col sm:flex-row gap-4 mt-6 pl-15">
