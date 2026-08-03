@@ -23,7 +23,7 @@
   smoother and allows the app to switch pages without requiring a refresh.
 */
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,64 +32,25 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { db } from "../firebase/firebase";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 export default function BrowseListings() {
 	const navigate = useNavigate();
 	const [searchQuery, setSearchQuery] = useState("");
+	const [listings, setListings] = useState([]);
+	const [loading, setLoading] = useState(true);
 
 	const checkboxClass =
 		"border-sky-300 data-checked:bg-sky-300 data-checked:border-sky-300";
-
-	// Mock data
-	const listings = [
-		{
-			id: 1,
-			title: "MacBook Air 2020",
-			price: "$250",
-			location: "North Campus",
-			category: "Electronics",
-		},
-		{
-			id: 2,
-			title: "TI-84 Plus Calculator",
-			price: "$50",
-			location: "East Campus",
-			category: "Electronics",
-		},
-		{
-			id: 3,
-			title: "Old Windows Laptop",
-			price: "$40",
-			location: "East Campus",
-			category: "Electronics",
-		},
-		{
-			id: 4,
-			title: "White Ottoman Chair",
-			price: "$150",
-			location: "South Campus",
-			category: "Furniture",
-		},
-		{
-			id: 5,
-			title: "Calculus 2 Textbook",
-			price: "Free",
-			location: "North Campus",
-			category: "Books",
-		},
-		{
-			id: 6,
-			title: "Bella Air Fryer - Used",
-			price: "$25",
-			location: "South Campus",
-			category: "Appliances",
-		},
+	const ALL_CATEGORIES = [
+		"Books",
+		"Electronics",
+		"Furniture",
+		"Clothing",
+		"Appliances",
 	];
-
-	// categories for filters
-
-	const ALL_CATEGORIES = ["Books", "Electronics", "Furniture", "Clothing", "Appliances"];
-	const ALL_LOCATIONS = ["South Campus", "North Campus", "East Campus"];
+	const ALL_LOCATIONS = ["East Campus", "South Campus", "North Campus"];
 	const SORTS = ["New", "Price Ascending", "Price Descending"];
 
 	const [keywords, setKeywords] = useState([]);
@@ -97,11 +58,29 @@ export default function BrowseListings() {
 	const [locations, setLocations] = useState(ALL_LOCATIONS);
 	const [priceRange, setPriceRange] = useState([0, 999]);
 	const [sort, setSort] = useState("New");
-
-	const allItemsChecked = categories.length === ALL_CATEGORIES.length;
-
 	const [dateAdded, setDateAdded] = useState("newest");
 
+	// REAL-TIME LISTENER for listings from Firestore
+	useEffect(() => {
+		const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
+		const unsubscribe = onSnapshot(
+			q,
+			(snapshot) => {
+				const listingsData = [];
+				snapshot.forEach((doc) => {
+					listingsData.push({ id: doc.id, ...doc.data() });
+				});
+				setListings(listingsData);
+				setLoading(false);
+				console.log("🔄 Listings updated in real-time:", listingsData.length);
+			},
+			(error) => {
+				console.error("❌ Error fetching listings:", error);
+				setLoading(false);
+			},
+		);
+		return () => unsubscribe();
+	}, []);
 
 	// adding keywords to search
 	function addKeywordFromSearch() {
@@ -110,97 +89,122 @@ export default function BrowseListings() {
 		setSearchQuery("");
 	}
 
-	// removing keywords
 	function removeKeyword(k) {
 		setKeywords(keywords.filter((w) => w !== k));
 	}
 
-	// toggling categories
 	function toggleCategory(cat) {
 		setCategories((prev) =>
-			prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+			prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
 		);
 	}
 
-	// toggling all items, checks off everything if "all categories" is selected
 	function toggleAllItems(checked) {
 		setCategories(checked ? ALL_CATEGORIES : []);
 	}
 
-	// toggling location
 	function toggleLocation(loc) {
 		setLocations((prev) =>
-			prev.includes(loc) ? prev.filter((l) => l !== loc) : [...prev, loc]
+			prev.includes(loc) ? prev.filter((l) => l !== loc) : [...prev, loc],
 		);
 	}
 
-	// price ascending/descending
 	function parsePrice(priceStr) {
+		if (typeof priceStr === "number") return priceStr;
 		if (priceStr === "Free") return 0;
-		return Number(priceStr.replace("$", ""));
+		return Number(String(priceStr).replace("$", ""));
 	}
 
-	// filters listings by name, price, category, etc
 	const filteredListings = useMemo(() => {
 		let items = listings.filter((item) => {
+			const price = parsePrice(item.price);
 			const matchesSearch =
 				searchQuery.trim() === "" ||
 				item.title.toLowerCase().includes(searchQuery.toLowerCase());
 			const matchesKeywords =
 				keywords.length === 0 ||
-				keywords.some((k) => item.title.toLowerCase().includes(k.toLowerCase()));
+				keywords.some((k) =>
+					item.title.toLowerCase().includes(k.toLowerCase()),
+				);
 			const matchesCategory = categories.includes(item.category);
-			const matchesLocation = locations.includes(item.location);
-			const matchesPrice =
-				parsePrice(item.price) >= priceRange[0] && parsePrice(item.price) <= priceRange[1];
-
-			return matchesSearch && matchesKeywords && matchesCategory && matchesLocation && matchesPrice;
+			// Filter by campus (checks if location contains "East Campus", "South Campus", or "North Campus")
+			const matchesLocation = locations.some((campus) =>
+				item.location.includes(campus),
+			);
+			const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+			return (
+				matchesSearch &&
+				matchesKeywords &&
+				matchesCategory &&
+				matchesLocation &&
+				matchesPrice
+			);
 		});
-
-		if (sort === "Price Ascending") {
-			items = [...items].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-		}
-		if (sort === "Price Descending") {
-			items = [...items].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
-		}
-
+		if (sort === "Price Ascending")
+			items = [...items].sort(
+				(a, b) => parsePrice(a.price) - parsePrice(b.price),
+			);
+		if (sort === "Price Descending")
+			items = [...items].sort(
+				(a, b) => parsePrice(b.price) - parsePrice(a.price),
+			);
+		if (sort === "New")
+			items = [...items].sort((a, b) => {
+				const aDate = a.createdAt?.toDate?.() || new Date(0);
+				const bDate = b.createdAt?.toDate?.() || new Date(0);
+				return bDate - aDate;
+			});
 		return items;
-	}, [searchQuery, keywords, categories, locations, priceRange, sort]);
+	}, [
+		listings,
+		searchQuery,
+		keywords,
+		categories,
+		locations,
+		priceRange,
+		sort,
+	]);
+
+	if (loading) {
+		return (
+			<div className="min-h-svh bg-sky-50 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
+					<p className="mt-4 text-neutral-600">Loading listings...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="min-h-svh bg-sky-50 text-neutral-900 font-sans pb-12">
-			{/* Navigation Bar */}
 			<nav className="flex items-center justify-between px-8 py-4 bg-white border-b border-sky-200">
 				<div className="flex gap-8 text-sm font-medium">
 					<button
-						type="button"
-						onClick={() => navigate("/dashboard")}
+						onClick={() => navigate("/")}
 						className="hover:text-red-600 transition-colors"
 					>
 						Home
 					</button>
 					<button
-						type="button"
 						onClick={() => navigate("/sell")}
 						className="hover:text-red-600 transition-colors"
 					>
 						Sell
 					</button>
-					<a href="#" className="hover:text-red-600 transition-colors">
+					<button className="hover:text-red-600 transition-colors">
 						Messages
-					</a>
+					</button>
 					<button
-						type="button"
 						onClick={() => navigate("/signin")}
 						className="hover:text-red-600 transition-colors"
 					>
-						Log Out
+						Sign In
 					</button>
 				</div>
 				<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
 			</nav>
 
-			{/* Header & Search */}
 			<div className="px-8 py-8 max-w-[1400px] mx-auto">
 				<h1 className="mb-6 text-4xl font-black text-neutral-900">
 					Browse Listings
@@ -215,17 +219,17 @@ export default function BrowseListings() {
 						type="text"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeywordFromSearch())}
+						onKeyDown={(e) =>
+							e.key === "Enter" && (e.preventDefault(), addKeywordFromSearch())
+						}
 						placeholder="Search Textbooks, Electronics, Furniture, etc..."
 						className="w-full rounded-full border-sky-200 bg-white py-6 pl-14 pr-4 text-base focus-visible:ring-sky-300 shadow-sm"
 					/>
 				</div>
 
-				{/* main Content Layout */}
 				<div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-					{/* sidebar / Filters */}
 					<aside className="col-span-1 h-fit rounded-lg border border-sky-200 bg-white p-6 shadow-sm">
-						{/* keywords */}
+						{/* Keywords */}
 						<div className="mb-8">
 							<h3 className="mb-3 text-sm font-semibold text-neutral-900">
 								Keywords
@@ -253,7 +257,12 @@ export default function BrowseListings() {
 									onCheckedChange={toggleAllItems}
 									className={checkboxClass}
 								/>
-								<label htmlFor="cat-all" className="text-sm font-medium leading-none text-neutral-700">All Items</label>
+								<label
+									htmlFor="cat-all"
+									className="text-sm font-medium leading-none text-neutral-700"
+								>
+									All Items
+								</label>
 							</div>
 							{ALL_CATEGORIES.map((category) => (
 								<div key={category} className="flex items-center gap-3">
@@ -263,7 +272,12 @@ export default function BrowseListings() {
 										onCheckedChange={() => toggleCategory(category)}
 										className={checkboxClass}
 									/>
-									<label htmlFor={`cat-${category}`} className="text-sm font-medium leading-none text-neutral-700">{category}</label>
+									<label
+										htmlFor={`cat-${category}`}
+										className="text-sm font-medium leading-none text-neutral-700"
+									>
+										{category}
+									</label>
 								</div>
 							))}
 						</div>
@@ -272,7 +286,9 @@ export default function BrowseListings() {
 						<div className="mb-8">
 							<div className="mb-4 flex items-center justify-between text-sm text-neutral-700">
 								<span className="font-semibold text-neutral-900">Price</span>
-								<span>${priceRange[0]}-{priceRange[1]}</span>
+								<span>
+									${priceRange[0]}-${priceRange[1]}
+								</span>
 							</div>
 							<Slider
 								value={priceRange}
@@ -296,7 +312,10 @@ export default function BrowseListings() {
 										onCheckedChange={() => toggleLocation(location)}
 										className={checkboxClass}
 									/>
-									<label htmlFor={`loc-${location}`} className="text-sm font-medium leading-none text-neutral-700">
+									<label
+										htmlFor={`loc-${location}`}
+										className="text-sm font-medium leading-none text-neutral-700"
+									>
 										{location}
 									</label>
 								</div>
@@ -315,7 +334,10 @@ export default function BrowseListings() {
 									onCheckedChange={() => setDateAdded("oldest")}
 									className={checkboxClass}
 								/>
-								<label htmlFor="date-oldest" className="text-sm font-medium leading-none text-neutral-700">
+								<label
+									htmlFor="date-oldest"
+									className="text-sm font-medium leading-none text-neutral-700"
+								>
 									Oldest
 								</label>
 							</div>
@@ -326,16 +348,17 @@ export default function BrowseListings() {
 									onCheckedChange={() => setDateAdded("newest")}
 									className={checkboxClass}
 								/>
-								<label htmlFor="date-newest" className="text-sm font-medium leading-none text-neutral-700">
+								<label
+									htmlFor="date-newest"
+									className="text-sm font-medium leading-none text-neutral-700"
+								>
 									Newest
 								</label>
 							</div>
 						</div>
 					</aside>
 
-					{/* Listings Grid Area */}
 					<main className="col-span-1 lg:col-span-3">
-						{/* Sort Controls */}
 						<div className="mb-6 flex flex-wrap justify-end gap-2">
 							{SORTS.map((s) => (
 								<Button
@@ -354,33 +377,55 @@ export default function BrowseListings() {
 							))}
 						</div>
 
-						{/* Grid */}
-						{/* filteredListings makes the results become dynamic, responding to the search bar */}
+						<p className="mb-4 text-sm text-neutral-500">
+							{filteredListings.length} listing
+							{filteredListings.length !== 1 ? "s" : ""} found
+						</p>
+
 						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 							{filteredListings.map((item) => (
 								<Card
 									key={item.id}
 									className="overflow-hidden border-sky-200 bg-white shadow-sm transition-shadow hover:shadow-md"
 								>
-									{/* Image Placeholder */}
 									<div className="flex h-56 w-full items-center justify-center bg-sky-100">
-										<ImageIcon
-											className="size-16 text-sky-300 opacity-50"
-											strokeWidth={1}
-										/>
+										{item.imageUrl ? (
+											<img
+												src={item.imageUrl}
+												alt={item.title}
+												className="h-full w-full object-cover"
+											/>
+										) : (
+											<ImageIcon
+												className="size-16 text-sky-300 opacity-50"
+												strokeWidth={1}
+											/>
+										)}
 									</div>
 									<CardContent className="p-4">
 										<h4 className="mb-1 text-base font-medium text-neutral-900 line-clamp-1">
 											{item.title}
 										</h4>
 										<p className="mb-3 text-lg font-bold text-neutral-900">
-											{item.price}
+											${item.price}
 										</p>
 										<p className="text-sm text-neutral-500">{item.location}</p>
+										<p className="text-xs text-neutral-400 mt-1">
+											Category: {item.category}
+										</p>
 									</CardContent>
 								</Card>
 							))}
 						</div>
+
+						{filteredListings.length === 0 && (
+							<div className="col-span-full text-center py-12">
+								<p className="text-neutral-500">No listings found.</p>
+								<p className="text-sm text-neutral-400">
+									Try adjusting your filters or be the first to post an item!
+								</p>
+							</div>
+						)}
 					</main>
 				</div>
 			</div>
