@@ -29,6 +29,12 @@
   - Error handling for invalid credentials
   - Redirects to dashboard on success
 */
+/*
+  Notes from Daniyal 8/9:
+  I removed the "forgot password" button, since we don't have a forgot password page or 
+  anything that we can do to make a page for it
+*/
+
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -176,16 +182,7 @@ function UserSignIn() {
 						</Button>
 
 						<div className="mt-4 flex items-center justify-between">
-							<Button
-								type="button"
-								variant="link"
-								size="sm"
-								disabled
-								className="text-red-600"
-							>
-								Forgot Password?
-							</Button>
-
+							
 							<Button
 								type="button"
 								variant="link"
