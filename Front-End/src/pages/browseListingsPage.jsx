@@ -22,8 +22,8 @@
 
     Notes from Daniyal August 8:
 	I added an "other/misc" filter based on what the beta user testing
-	said. I didn't add much else, and everything else should be working 
-	properly
+	said. I also removed the "Messages" link in the navigation bar, since we 
+	won't be adding a messaging page feature
 */
 import React, { useMemo, useState, useEffect } from "react";
 import { Search, X, Check, Image as ImageIcon, UserCircle } from "lucide-react";
@@ -183,7 +183,6 @@ export default function BrowseListings() {
 					<button onClick={() => navigate("/sell")} className="hover:text-red-600 transition-colors">
 						Sell
 					</button>
-					<button className="hover:text-red-600 transition-colors">Messages</button>
 					<button onClick={() => navigate("/signin")} className="hover:text-red-600 transition-colors">
 						Sign In
 					</button>
