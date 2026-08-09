@@ -1,6 +1,8 @@
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
 const { onRequest } = require("firebase-functions/v2/https");
+const { onInit } = require("firebase-functions/v2/core");
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
@@ -8,9 +10,17 @@ const vision = require("@google-cloud/vision");
 initializeApp();
 
 // Initialize Google Cloud Vision client
-const visionClient = new vision.ImageAnnotatorClient({
-	keyFilename: "./CampusExchangeAPI.json",
+let visionClient;
+
+// since this is something outside needs to be at the end when everything else is finished
+onInit(async () => {
+	logger.info("🚀 Initializing Vision Client...");
+	visionClient = new vision.ImageAnnotatorClient({
+		keyFilename: "./CampusExchangeAPI.json",
+	});
+	logger.info("Vision Client Initialized.");
 });
+
 // createUser with v2 CORS options and public access
 exports.createUser = onRequest(
 	{
@@ -20,7 +30,7 @@ exports.createUser = onRequest(
 			"https://campus-exchange-d47f4.web.app",
 			"https://campus-exchange-d47f4.firebaseapp.com",
 		],
-		invoker: "public", // Allows unauthenticated calls
+		invoker: "public",
 	},
 	async (req, res) => {
 		const {
@@ -73,7 +83,7 @@ exports.scanStudentId = onRequest(
 			"https://campus-exchange-d47f4.web.app",
 			"https://campus-exchange-d47f4.firebaseapp.com",
 		],
-		invoker: "public", // Allows unauthenticated calls
+		invoker: "public",
 	},
 	async (req, res) => {
 		try {
@@ -166,6 +176,113 @@ exports.scanStudentId = onRequest(
 			return res.status(500).send({
 				success: false,
 				error: "Failed to scan ID. Please try again later.",
+			});
+		}
+	},
+);
+
+// Create Account Cloud Function
+exports.createAccount = onRequest(
+	{
+		cors: [
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+			"https://campus-exchange-d47f4.web.app",
+			"https://campus-exchange-d47f4.firebaseapp.com",
+		],
+		invoker: "public",
+	},
+	async (req, res) => {
+		const { username, password, phoneNumber, studentName, studentId } =
+			req.body;
+
+		// Validate required fields
+		if (!username || !password || !phoneNumber || !studentName || !studentId) {
+			return res.status(400).send({
+				error:
+					"Missing required fields. Please provide username, password, phoneNumber, studentName, and studentId.",
+			});
+		}
+
+		// Validate username length
+		if (username.length < 3) {
+			return res.status(400).send({
+				error: "Username must be at least 3 characters long.",
+			});
+		}
+
+		// Validate password strength (minimum 6 characters)
+		if (password.length < 6) {
+			return res.status(400).send({
+				error: "Password must be at least 6 characters long.",
+			});
+		}
+
+		// Basic phone number validation (remove non-digits, check length)
+		const phoneDigits = phoneNumber.replace(/\D/g, "");
+		if (phoneDigits.length < 10) {
+			return res.status(400).send({
+				error: "Please enter a valid phone number with at least 10 digits.",
+			});
+		}
+
+		try {
+			// Create the user in Firebase Authentication
+			const email = `${username}@campus-exchange.local`;
+
+			const userRecord = await getAuth().createUser({
+				email: email,
+				password: password,
+				displayName: studentName,
+			});
+
+			logger.info(`✅ Firebase Auth user created: ${userRecord.uid}`);
+
+			// Save the user's profile to Firestore using UID as document ID
+			const db = getFirestore();
+			const userData = {
+				username: username,
+				studentName: studentName,
+				studentId: studentId,
+				phoneNumber: phoneNumber,
+				ucard: true,
+				umass: true,
+				umassLowell: true,
+				student: true,
+				createdAt: new Date().toISOString(),
+				uid: userRecord.uid,
+			};
+
+			await db.collection("users").doc(userRecord.uid).set(userData);
+			logger.info(`✅ Firestore user profile created for: ${userRecord.uid}`);
+
+			return res.status(201).send({
+				success: true,
+				message: "Account created successfully. You can now log in.",
+				uid: userRecord.uid,
+			});
+		} catch (error) {
+			logger.error("❌ Error creating account:", error);
+
+			if (error.code === "auth/email-already-exists") {
+				return res.status(409).send({
+					error:
+						"This username is already taken. Please choose a different one.",
+				});
+			}
+			if (error.code === "auth/invalid-email") {
+				return res.status(400).send({
+					error: "Invalid username. Please try again.",
+				});
+			}
+			if (error.code === "auth/weak-password") {
+				return res.status(400).send({
+					error: "Password is too weak. Please choose a stronger password.",
+				});
+			}
+
+			return res.status(500).send({
+				error: error.message || "Failed to create account. Please try again.",
 			});
 		}
 	},
