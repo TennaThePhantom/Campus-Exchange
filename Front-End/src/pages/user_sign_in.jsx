@@ -35,6 +35,10 @@
   anything that we can do to make a page for it
 */
 
+/*
+  Notes from Diya 8/10:
+  I  added a campus photo to the left side of the sign-in page for larger screens. It will be hidden on smaller screens.
+*/
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -208,3 +212,4 @@ function UserSignIn() {
 }
 
 export default UserSignIn;
+
