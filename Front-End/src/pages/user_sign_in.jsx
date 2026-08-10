@@ -31,10 +31,14 @@
 */
 /*
   Notes from Daniyal 8/9:
-  I removed the "forgot password" button, since we don't have a forgot password page or 
+  I removed the "forgot password" button, since we don't have a forgot password page or
   anything that we can do to make a page for it
 */
 
+/*
+  Notes from Diya 8/10:
+  I  added a campus photo to the left side of the sign-in page for larger screens. It will be hidden on smaller screens.
+*/
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -111,7 +115,15 @@ function UserSignIn() {
 
 	return (
 		<div className="grid min-h-svh grid-cols-1 bg-sky-50 md:grid-cols-2">
-			<div className="hidden bg-sky-100 md:block" />
+
+			{/* Left side - UMass Lowell campus image */}
+			<div className="hidden min-h-svh overflow-hidden md:block">
+				<img
+					src="/uml-campus.webp"
+					alt="University of Massachusetts Lowell campus"
+					className="h-full w-full object-cover"
+				/>
+			</div>
 
 			<div className="flex items-center justify-center px-6 py-12">
 				<div className="w-full max-w-sm">
@@ -182,7 +194,7 @@ function UserSignIn() {
 						</Button>
 
 						<div className="mt-4 flex items-center justify-between">
-							
+
 							<Button
 								type="button"
 								variant="link"
@@ -201,3 +213,4 @@ function UserSignIn() {
 }
 
 export default UserSignIn;
+
