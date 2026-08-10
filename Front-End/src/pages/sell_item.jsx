@@ -164,7 +164,7 @@ function SellItem() {
 			<nav className="navbar bg-base-100 shadow-md px-8">
 				<button
 					type="button"
-					className="btn-ghost text-xl"
+					className="btn-ghost text-xl cuursor-pointer hover:text-blue-800"
 					onClick={() => navigate("/dashboard")}
 				>
 					Home
@@ -352,7 +352,7 @@ function SellItem() {
 							required
 						></textarea>
 
-						<div className="flex flex-col sm:flex-row gap-4 mt-6 pl-15">
+						<div className="flex justify-center mt-6">
 							<button
 								type="submit"
 								className="btn btn-primary w-70"
