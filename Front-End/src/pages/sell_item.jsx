@@ -1,11 +1,12 @@
 // sell_item.jsx
 
-
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, ArrowUp, IdCard } from "lucide-react";
 
 function SellItem({setPage}) {
+    const navigate = useNavigate();
     return (
         <div className="min-h-screen bg-base-200"
             style={{
@@ -17,8 +18,8 @@ function SellItem({setPage}) {
             <nav className="navbar bg-base-100 shadow-md px-8">
                 <button
                 type="button"
-                className="btn-ghost text-xl"
-                onClick={() => setPage("dashboard")}
+                className="btn-ghost text-xl cursor-pointer hover:text-blue-800"
+                onClick={() => navigate("/dashboard")}
                 >
                     Home
                 </button>
@@ -43,7 +44,7 @@ function SellItem({setPage}) {
                     />
                     </div>
 
-             <div className="pt-8 pl-8 w-96 flex flex-col">
+             <div className="pt-8 pl-8 w-full min-w-0 flex flex-col">
                 <label className="label">
                     <span className="label-text text-black">Price</span>
                     </label>
@@ -61,7 +62,7 @@ function SellItem({setPage}) {
                      </div>
 
 
-            <div className="pt-8 pl-8 w-96">
+            <div className="pt-8 pl-8 w-full min-w-0">
                 <label className="label" >
                     <span className="label-text text-black">Location </span>
                 </label>
@@ -84,7 +85,7 @@ function SellItem({setPage}) {
                 </select>
             </div>
 
-            <div className="pt-8 pl-8 w-96">
+            <div className="pt-8 pl-8 w-full min-w-0">
                 <label className="label">
                     <span className="label-text text-black">Category </span>
                 </label>
@@ -98,6 +99,7 @@ function SellItem({setPage}) {
                     <option value="F">Furniture</option>
                     <option value="C">Clothing</option>
                     <option value="A">Appliances</option>
+                    <option value="O">Other / Miscellaneous</option>
                 </select>
             </div>
 
@@ -123,7 +125,7 @@ function SellItem({setPage}) {
 
 
 
-            <label className=" flex flex-col h-[350px] w-full maxs-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center bg-white text-black">
+            <label className=" flex flex-col h-[350px] w-full max-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8  items-center justify-center bg-white text-black">
             <Camera className="h-12 w-12 text-primary" />
             <p className="mt-3">Upload Images</p>
             <input
@@ -133,7 +135,7 @@ function SellItem({setPage}) {
             />
             </label>
 </div>
-            <div className="flex flex-col ml-8">
+            <div className="w-full max-w-xl">
                 <label className="label" >
                     <span className="label-text text-black">Description</span>
                 </label>
@@ -143,13 +145,9 @@ function SellItem({setPage}) {
                 className="textarea textarea-bordered w-full h-[450px] bg-white text-black"
                 ></textarea>
                 
-                <div className="flex flex-col sm:flex-row gap-4 mt-6 pl-15">
+                <div className="flex justify-center mt-6">
                  <button type="submit" className=" btn btn-primary w-70">
                         List Item
-                    </button>
-            
-                <button type="delete" className=" btn btn-primary w-70">
-                       Draft
                     </button>
                     </div>
                 </div>
