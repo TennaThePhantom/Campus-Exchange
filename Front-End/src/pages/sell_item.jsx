@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Camera, X, CheckCircle, AlertCircle } from "lucide-react";
 import { db, storage } from "../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
