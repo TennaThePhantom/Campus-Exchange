@@ -51,7 +51,7 @@ export function normalizeSeller(id, data) {
 		id,
 		studentName: raw.studentName || "UML Student",
 		studentId: raw.studentId || "",
-		phone: raw.phone || "",
+		phone: raw.phoneNumber || "",
 		photoURL: raw.photoURL || "",
 	};
 }
