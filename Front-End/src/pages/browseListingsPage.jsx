@@ -35,7 +35,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase/firebase";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import {
+	collection,
+	query,
+	orderBy,
+	onSnapshot,
+	doc,
+	getDoc,
+} from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { formatPrice } from "@/lib/listingOptions";
 
@@ -46,6 +53,7 @@ export default function BrowseListings() {
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState(null);
 	const [authLoading, setAuthLoading] = useState(true);
+	const [userDisplayName, setUserDisplayName] = useState("");
 
 	const checkboxClass =
 		"border-sky-300 data-checked:bg-sky-300 data-checked:border-sky-300";
@@ -68,11 +76,36 @@ export default function BrowseListings() {
 	const [sort, setSort] = useState("New");
 	const [dateAdded, setDateAdded] = useState("newest");
 
-	//  Check if user is signed in
+	// Check if user is signed in and get their display name
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 			setUser(currentUser);
 			setAuthLoading(false);
+
+			if (currentUser) {
+				// Try to get display name from auth
+				let displayName = currentUser.displayName || currentUser.email || "";
+
+				// If no display name in auth, try to get from Firestore
+				if (!displayName || displayName === "") {
+					try {
+						const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+						if (userDoc.exists()) {
+							const userData = userDoc.data();
+							displayName =
+								userData.displayName ||
+								userData.email ||
+								currentUser.email ||
+								"";
+						}
+					} catch (error) {
+						console.error("Error fetching user data:", error);
+					}
+				}
+				setUserDisplayName(displayName);
+			} else {
+				setUserDisplayName("");
+			}
 		});
 		return () => unsubscribe();
 	}, []);
@@ -98,6 +131,29 @@ export default function BrowseListings() {
 		);
 		return () => unsubscribe();
 	}, []);
+
+	// Get user initials from display name
+	const getUserInitials = (name) => {
+		if (!name || name === "") return "?";
+
+		// If it's an email, take the first letter before the @
+		if (name.includes("@")) {
+			return name.charAt(0).toUpperCase();
+		}
+
+		// Split by space and take first letter of each part
+		const parts = name.trim().split(" ");
+		if (parts.length === 1) {
+			return parts[0].charAt(0).toUpperCase();
+		}
+		return (
+			parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+		).toUpperCase();
+	};
+
+	// Get initials and determine if user is logged in
+	const userInitials = user ? getUserInitials(userDisplayName) : "?";
+	const isLoggedIn = !!user;
 
 	// adding keywords to search
 	function addKeywordFromSearch() {
@@ -232,7 +288,7 @@ export default function BrowseListings() {
 					>
 						Sell
 					</button>
-					{/* Show Sign In only if user is no logged in */}
+					{/* Show Sign In only if user is not logged in */}
 					{!user && !authLoading && (
 						<button
 							onClick={() => navigate("/signin")}
@@ -247,6 +303,7 @@ export default function BrowseListings() {
 							onClick={() => {
 								signOut(auth);
 								setUser(null);
+								setUserDisplayName("");
 								navigate("/");
 							}}
 							className="hover:text-red-600 transition-colors"
@@ -255,7 +312,20 @@ export default function BrowseListings() {
 						</button>
 					)}
 				</div>
-				<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
+
+				{/* Profile Avatar Shows initials when logged in */}
+				{isLoggedIn ? (
+					<div
+						className="relative flex items-center justify-center size-10 rounded-full bg-sky-600 text-white font-semibold text-sm select-none cursor-default"
+						title={userDisplayName || user?.email || "User"}
+					>
+						{userInitials}
+						{/* Add a green dot for online status */}
+						<span className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-white"></span>
+					</div>
+				) : (
+					<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
+				)}
 			</nav>
 
 			{/* Header & Search */}
