@@ -373,7 +373,7 @@ export default function BrowseListings() {
 											<img
 												src={item.imageUrl}
 												alt={item.title}
-												className="h-full w-full object-contain"
+												className="h-full w-full object-cover"
 											/>
 										) : (
 											<ImageIcon className="size-16 text-sky-300 opacity-50" strokeWidth={1} />
