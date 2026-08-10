@@ -31,7 +31,7 @@
 */
 /*
   Notes from Daniyal 8/9:
-  I removed the "forgot password" button, since we don't have a forgot password page or 
+  I removed the "forgot password" button, since we don't have a forgot password page or
   anything that we can do to make a page for it
 */
 
@@ -111,7 +111,14 @@ function UserSignIn() {
 
 	return (
 		<div className="grid min-h-svh grid-cols-1 bg-sky-50 md:grid-cols-2">
-			<div className="hidden bg-sky-100 md:block" />
+
+			{/* Left side - UMass Lowell campus image */}
+			<div
+				className="hidden min-h-svh w-full bg-cover bg-center bg-no-repeat md:block"
+				style={{
+					backgroundImage: "url('/uml-campus.webp')",
+				}}
+			/>
 
 			<div className="flex items-center justify-center px-6 py-12">
 				<div className="w-full max-w-sm">
@@ -182,7 +189,7 @@ function UserSignIn() {
 						</Button>
 
 						<div className="mt-4 flex items-center justify-between">
-							
+
 							<Button
 								type="button"
 								variant="link"
