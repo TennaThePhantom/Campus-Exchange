@@ -202,15 +202,21 @@ const VerificationPage = () => {
 	};
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
+		<div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background"
+		style={{
+                backgroundImage:
+                "linear-gradient(rgba(219,234,254,0.3), rgba(191,219,254,0.6)), url('/hero-placeholder.jpg')",
+                backgroundColor: "#bfdbfe",
+                }}
+                >
 			<div className="max-w-md w-full space-y-6">
 				{/* Header */}
 				<div className="text-center">
-					<h1 className="text-2xl font-bold">Verify Your UML ID</h1>
-					<p className="text-muted-foreground text-sm mt-1">
+					<h1 className="text-2xl font-bold text-black">Verify Your UML ID</h1>
+					<p className="text-sm mt-1 text-black">
 						Upload a clear photo of your UML student ID card
 					</p>
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-xs text-black mt-1">
 						Accepted formats: PNG, JPEG (Max 5MB)
 					</p>
 				</div>
@@ -241,17 +247,17 @@ const VerificationPage = () => {
 						) : (
 							<div>
 								<div className="text-4xl mb-2">📸</div>
-								<p className="text-muted-foreground mb-2">
+								<p className="text-black mb-2">
 									Drag & drop your ID photo here
 								</p>
-								<p className="text-xs text-muted-foreground mb-4">
+								<p className="text-xs text-black mb-4">
 									or click to browse
 								</p>
 								<input
 									type="file"
 									accept="image/png, image/jpeg, image/jpg"
 									onChange={handleImageUpload}
-									className="text-sm cursor-pointer"
+									className="text-sm cursor-pointer text-black"
 								/>
 							</div>
 						)}
