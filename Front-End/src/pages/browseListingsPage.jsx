@@ -34,8 +34,9 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { db } from "../firebase/firebase";
+import { db, auth } from "../firebase/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { formatPrice } from "@/lib/listingOptions";
 
 export default function BrowseListings() {
@@ -43,6 +44,8 @@ export default function BrowseListings() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [listings, setListings] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [user, setUser] = useState(null);
+	const [authLoading, setAuthLoading] = useState(true);
 
 	const checkboxClass =
 		"border-sky-300 data-checked:bg-sky-300 data-checked:border-sky-300";
@@ -64,6 +67,15 @@ export default function BrowseListings() {
 	const [priceRange, setPriceRange] = useState([0, 999]);
 	const [sort, setSort] = useState("New");
 	const [dateAdded, setDateAdded] = useState("newest");
+
+	//  Check if user is signed in
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+			setUser(currentUser);
+			setAuthLoading(false);
+		});
+		return () => unsubscribe();
+	}, []);
 
 	// real time listener for listings from Firestore
 	useEffect(() => {
@@ -148,7 +160,7 @@ export default function BrowseListings() {
 					item.title.toLowerCase().includes(k.toLowerCase()),
 				);
 			const matchesCategory = categories.includes(item.category);
-			// Filter by campus (checks if location contains "East Campus", "South Campus", or "North Campus")
+			// Filter by campus (checks if location contains "East Campus", South Campus", or North Campus"
 			const matchesLocation = locations.some((campus) =>
 				item.location.includes(campus),
 			);
@@ -220,12 +232,28 @@ export default function BrowseListings() {
 					>
 						Sell
 					</button>
-					<button
-						onClick={() => navigate("/signin")}
-						className="hover:text-red-600 transition-colors"
-					>
-						Sign In
-					</button>
+					{/* Show Sign In only if user is no logged in */}
+					{!user && !authLoading && (
+						<button
+							onClick={() => navigate("/signin")}
+							className="hover:text-red-600 transition-colors"
+						>
+							Sign In
+						</button>
+					)}
+					{/* Show Log Out if user logged in */}
+					{user && (
+						<button
+							onClick={() => {
+								signOut(auth);
+								setUser(null);
+								navigate("/");
+							}}
+							className="hover:text-red-600 transition-colors"
+						>
+							Log Out
+						</button>
+					)}
 				</div>
 				<UserCircle className="size-8 text-sky-600" strokeWidth={1.5} />
 			</nav>
@@ -330,7 +358,7 @@ export default function BrowseListings() {
 							<div className="mb-4 flex items-center justify-between text-sm text-neutral-700">
 								<span className="font-semibold text-neutral-900">Price</span>
 								<span>
-									${priceRange[0]}-{priceRange[1]}
+									${priceRange[0]}-${priceRange[1]}
 								</span>
 							</div>
 							<Slider
