@@ -117,12 +117,13 @@ function UserSignIn() {
 		<div className="grid min-h-svh grid-cols-1 bg-sky-50 md:grid-cols-2">
 
 			{/* Left side - UMass Lowell campus image */}
-			<div
-				className="hidden min-h-svh w-full bg-cover bg-center bg-no-repeat md:block"
-				style={{
-					backgroundImage: "url('/uml-campus.webp')",
-				}}
-			/>
+			<div className="hidden min-h-svh overflow-hidden md:block">
+				<img
+					src="/uml-campus.webp"
+					alt="University of Massachusetts Lowell campus"
+					className="h-full w-full object-cover"
+				/>
+			</div>
 
 			<div className="flex items-center justify-center px-6 py-12">
 				<div className="w-full max-w-sm">
