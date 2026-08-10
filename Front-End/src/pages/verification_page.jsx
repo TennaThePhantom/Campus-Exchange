@@ -1,11 +1,12 @@
 // working for clear photo ID haven't tested it with damage IDS yet - Tennessee
-// not connected to dashboard when user clicks on yes it should sent them to the dashboard
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { db } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-const VerificationPage = ({ setPage }) => {
+const VerificationPage = () => {
+	const navigate = useNavigate();
 	const [image, setImage] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [result, setResult] = useState(null);
@@ -13,16 +14,41 @@ const VerificationPage = ({ setPage }) => {
 	const [userCreated, setUserCreated] = useState(false);
 	const [confirmationStep, setConfirmationStep] = useState(false);
 
-	// Handle image upload and convert to base64
+	// Account creation states
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [phoneNumber, setPhoneNumber] = useState("");
+	const [authLoading, setAuthLoading] = useState(false);
+	const [authError, setAuthError] = useState("");
+
+	// Handle image upload, validate file type, and convert to base64
 	const handleImageUpload = (e) => {
 		const file = e.target.files[0];
 		if (!file) return;
+
+		// Check if the file is PNG or JPEG
+		const validTypes = ["image/png", "image/jpeg", "image/jpg"];
+		if (!validTypes.includes(file.type)) {
+			setError("❌ Please upload a PNG or JPEG image only.");
+			e.target.value = ""; // Clear the file input
+			return;
+		}
+
+		// Check file size limit to 5MB
+		if (file.size > 5 * 1024 * 1024) {
+			setError("❌ Image size must be less than 5MB.");
+			e.target.value = "";
+			return;
+		}
+
+		// Clear any previous errors
+		setError("");
 
 		const reader = new FileReader();
 		reader.onload = (event) => {
 			const base64String = event.target.result.split(",")[1];
 			setImage(base64String);
-			console.log("Image converted to base64");
+			console.log("✅ Image converted to base64");
 		};
 		reader.onerror = (error) => {
 			console.error("Error reading file:", error);
@@ -33,15 +59,24 @@ const VerificationPage = ({ setPage }) => {
 
 	// Get the correct function URL based on environment
 	const getFunctionUrl = () => {
-		// Check if we're in local development
 		if (
 			window.location.hostname === "localhost" ||
 			window.location.hostname === "127.0.0.1"
 		) {
 			return "http://127.0.0.1:5001/campus-exchange-d47f4/us-central1/scanStudentId";
 		}
-		// Production URL
 		return "https://us-central1-campus-exchange-d47f4.cloudfunctions.net/scanStudentId";
+	};
+
+	// Get the createAccount function URL
+	const getCreateAccountUrl = () => {
+		if (
+			window.location.hostname === "localhost" ||
+			window.location.hostname === "127.0.0.1"
+		) {
+			return "http://127.0.0.1:5001/campus-exchange-d47f4/us-central1/createAccount";
+		}
+		return "https://us-central1-campus-exchange-d47f4.cloudfunctions.net/createAccount";
 	};
 
 	// Send the base64 image to the Cloud Function for scanning
@@ -56,6 +91,7 @@ const VerificationPage = ({ setPage }) => {
 		setResult(null);
 		setUserCreated(false);
 		setConfirmationStep(false);
+		setAuthError("");
 
 		try {
 			const response = await fetch(getFunctionUrl(), {
@@ -90,32 +126,73 @@ const VerificationPage = ({ setPage }) => {
 		}
 	};
 
-	// Create user in Firestore using verified data
-	const createVerifiedUser = async () => {
+	// Create user account with username, password, and phone number
+	const finalizeAccount = async () => {
+		if (!username || !password || !phoneNumber) {
+			setAuthError("Please fill in all fields.");
+			return;
+		}
+
+		if (username.length < 3) {
+			setAuthError("Username must be at least 3 characters long.");
+			return;
+		}
+
+		if (password.length < 6) {
+			setAuthError("Password must be at least 6 characters long.");
+			return;
+		}
+
+		// Basic phone number validation (must be at least 10 digits)
+		const phoneDigits = phoneNumber.replace(/\D/g, "");
+		if (phoneDigits.length < 10) {
+			setAuthError(
+				"Please enter a valid phone number with at least 10 digits.",
+			);
+			return;
+		}
+
+		setAuthLoading(true);
+		setAuthError("");
+
 		try {
-			const docRef = await addDoc(collection(db, "users"), {
-				studentId: result.extractedId,
-				studentName: result.extractedName,
-				ucard: true,
-				umass: true,
-				umassLowell: true,
-				student: true,
-				sixteenDigitNumber: result.sixteenDigitNumber || "",
-				verifiedAt: new Date().toISOString(),
+			const response = await fetch(getCreateAccountUrl(), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					username: username,
+					password: password,
+					phoneNumber: phoneNumber,
+					studentName: result.extractedName,
+					studentId: result.extractedId,
+				}),
 			});
-			setUserCreated(true);
-			setConfirmationStep(false);
-			console.log(" User created successfully with ID: ", docRef.id);
-		} catch (error) {
-			console.error(" Error creating user:", error);
-			setError("Failed to create user in database");
+
+			const data = await response.json();
+
+			if (data.success) {
+				setUserCreated(true);
+				setConfirmationStep(false);
+				console.log("✅ Account created successfully!");
+			} else {
+				setAuthError(data.error || "Account creation failed.");
+			}
+		} catch (err) {
+			console.error("Network error:", err);
+			setAuthError("Failed to connect to the server. Please try again.");
+		} finally {
+			setAuthLoading(false);
 		}
 	};
 
 	// Handle user confirmation
 	const handleConfirmation = (isCorrect) => {
 		if (isCorrect) {
-			createVerifiedUser();
+			// User confirmed, show account creation form
+			setConfirmationStep(false);
+			// result is already set, so we show the account form
 		} else {
 			setConfirmationStep(false);
 			setResult(null);
@@ -133,10 +210,13 @@ const VerificationPage = ({ setPage }) => {
 					<p className="text-muted-foreground text-sm mt-1">
 						Upload a clear photo of your UML student ID card
 					</p>
+					<p className="text-xs text-muted-foreground mt-1">
+						Accepted formats: PNG, JPEG (Max 5MB)
+					</p>
 				</div>
 
-				{/* Image Upload Section Only show if not in confirmation step */}
-				{!confirmationStep && !userCreated && (
+				{/* Image Upload Section */}
+				{!confirmationStep && !userCreated && !result?.verified && (
 					<div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
 						{image ? (
 							<div className="space-y-2">
@@ -152,7 +232,7 @@ const VerificationPage = ({ setPage }) => {
 									Change photo
 									<input
 										type="file"
-										accept="image/*"
+										accept="image/png, image/jpeg, image/jpg"
 										onChange={handleImageUpload}
 										className="hidden"
 									/>
@@ -169,7 +249,7 @@ const VerificationPage = ({ setPage }) => {
 								</p>
 								<input
 									type="file"
-									accept="image/*"
+									accept="image/png, image/jpeg, image/jpg"
 									onChange={handleImageUpload}
 									className="text-sm cursor-pointer"
 								/>
@@ -178,8 +258,8 @@ const VerificationPage = ({ setPage }) => {
 					</div>
 				)}
 
-				{/* Scan Button - Only show if not in confirmation step */}
-				{!confirmationStep && !userCreated && (
+				{/* Scan Button */}
+				{!confirmationStep && !userCreated && !result?.verified && (
 					<Button
 						onClick={handleScanID}
 						disabled={!image || loading}
@@ -197,7 +277,7 @@ const VerificationPage = ({ setPage }) => {
 					</Button>
 				)}
 
-				{/* Confirmation Step Show the ID when it is verified */}
+				{/* Confirmation Step */}
 				{confirmationStep && result && (
 					<div className="bg-muted p-6 rounded-lg space-y-6">
 						<h3 className="font-semibold text-center text-lg">
@@ -231,7 +311,7 @@ const VerificationPage = ({ setPage }) => {
 
 						<div className="flex gap-4">
 							<Button
-								onClick={() => handleConfirmation(true)}
+								onClick={handleConfirmation}
 								className="flex-1 bg-green-600 hover:bg-green-700"
 							>
 								✅ Yes, That's Me
@@ -252,28 +332,114 @@ const VerificationPage = ({ setPage }) => {
 					</div>
 				)}
 
+				{/* Account Creation Formits shown after ID is verified */}
+				{result?.verified && !userCreated && !confirmationStep && (
+					<div className="bg-muted p-6 rounded-lg space-y-4">
+						<h2 className="text-xl font-bold text-center">
+							Create Your Account
+						</h2>
+						<p className="text-sm text-muted-foreground text-center">
+							Your ID has been verified! Fill in the details below to create
+							your account.
+						</p>
+
+						<div className="space-y-4">
+							<div>
+								<label className="label">
+									<span className="label-text">Choose a Username</span>
+								</label>
+								<input
+									type="text"
+									placeholder="e.g., john.doe"
+									className="input input-bordered w-full bg-black"
+									value={username}
+									onChange={(e) => setUsername(e.target.value)}
+								/>
+								<p className="text-xs text-muted-foreground mt-1">
+									This will be used to log in. Must be at least 3 characters.
+								</p>
+							</div>
+
+							<div>
+								<label className="label">
+									<span className="label-text">Password</span>
+								</label>
+								<input
+									type="password"
+									placeholder="Choose a strong password"
+									className="input input-bordered w-full bg-black"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+								<p className="text-xs text-muted-foreground mt-1">
+									Must be at least 6 characters long.
+								</p>
+							</div>
+
+							<div>
+								<label className="label">
+									<span className="label-text">Phone Number</span>
+								</label>
+								<input
+									type="tel"
+									placeholder="(123) 456-7890"
+									className="input input-bordered w-full bg-black"
+									value={phoneNumber}
+									onChange={(e) => setPhoneNumber(e.target.value)}
+								/>
+								<p className="text-xs text-muted-foreground mt-1">
+									Your phone number will be used for contact purposes.
+								</p>
+							</div>
+
+							<Button
+								className="w-full"
+								onClick={finalizeAccount}
+								disabled={authLoading || !username || !password || !phoneNumber}
+							>
+								{authLoading
+									? "Creating Account..."
+									: "Create Account & Continue"}
+							</Button>
+
+							{/* Display name from the ID scan */}
+							<div className="text-center text-sm text-muted-foreground">
+								Verified as:{" "}
+								<span className="font-semibold">{result.extractedName}</span>
+							</div>
+						</div>
+
+						{authError && (
+							<p className="text-sm text-destructive text-center">
+								{authError}
+							</p>
+						)}
+					</div>
+				)}
+
 				{/* Success Message */}
 				{userCreated && (
 					<div className="bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg p-4 text-center">
 						<div className="text-3xl mb-2">🎉</div>
 						<h3 className="font-bold text-green-700 dark:text-green-400">
-							You're Verified!
+							Account Created!
 						</h3>
 						<p className="text-sm text-green-600 dark:text-green-300 mt-1">
-							Your UML ID has been verified and your account is ready to use.
+							Your account has been created successfully. You can now log in
+							with your username and password.
 						</p>
 						<Button
 							className="mt-4"
 							variant="outline"
-							onClick={() => setPage("dashboard")}
+							onClick={() => navigate("/signin")}
 						>
-							Continue to Dashboard
+							Go to Login
 						</Button>
 					</div>
 				)}
 
 				{/* Error Display */}
-				{error && !confirmationStep && (
+				{error && !confirmationStep && !result?.verified && (
 					<div className="bg-destructive/10 border border-destructive rounded-lg p-3">
 						<p className="text-sm text-destructive">{error}</p>
 					</div>

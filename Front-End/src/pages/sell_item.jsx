@@ -1,4 +1,9 @@
 // sell_item.jsx
+/*
+    Notes from Daniyal 8/8:
+    I added an "other/misc" category. No other changes were made. This was done to 
+    match up the other keyword in the browse listings page for "other/misc"
+*/
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -8,13 +13,8 @@ import { Camera, ArrowUp, IdCard } from "lucide-react";
 function SellItem({setPage}) {
     const navigate = useNavigate();
     return (
-        <div className="min-h-screen bg-base-200"
-            style={{
-                backgroundImage:
-                "linear-gradient(rgba(219,234,254,0.3), rgba(191,219,254,0.6)), url('/hero-placeholder.jpg')",
-                backgroundColor: "#bfdbfe",
-                }}
-                >
+        <div className="min-h-screen bg-base-200">
+
             <nav className="navbar bg-base-100 shadow-md px-8">
                 <button
                 type="button"
@@ -25,28 +25,28 @@ function SellItem({setPage}) {
                 </button>
         </nav>
             <div className="max-w-4xl ml-8 pt-8">
-                <h1 className="text-3xl font-bold mb-6 text-black">Create New Listing</h1>
+                <h1 className="text-3xl font-bold mb-6">Create New Listing</h1>
             </div>
             
 
-<div className="flex flex-col lg:flex-row items-start gap-50">
+<div className="flex items-start gap-100">
     <div className="flex flex-col gap-3"> 
 
-        <div className ="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="pt-8 pl-8 w-full max-w-md flex flex-col">
+        <div className ="grid grid-cols-2 gap-6">
+            <div className="pt-8 pl-8 w-96 flex flex-col">
                 <label className="label" >
-                    <span className="label-text text-black">Title </span>
+                    <span className="label-text">Title </span>
                     </label>
                     <input
                     type="text"
                     placeholder="Example: TI-84 Calculator"
-                    className="input input-bordered w-full bg-white text-black"
+                    className="input input-bordered w-full"
                     />
                     </div>
 
              <div className="pt-8 pl-8 w-full min-w-0 flex flex-col">
                 <label className="label">
-                    <span className="label-text text-black">Price</span>
+                    <span className="label-text">Price</span>
                     </label>
 
             <div className="flex items-center border rounded-lg px-3">
@@ -56,7 +56,7 @@ function SellItem({setPage}) {
                      placeholder="0"
                      min="0"
                      step="0.01"
-                     className="input input-bordered w-full bg-white text-black"
+                     className="input input-bordered w-full"
                      />
                      </div>
                      </div>
@@ -64,9 +64,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-full min-w-0">
                 <label className="label" >
-                    <span className="label-text text-black">Location </span>
+                    <span className="label-text">Location </span>
                 </label>
-                <select className="select select-bordered w-full bg-white text-black" defaultValue="">
+                <select className="select select-bordered w-full" defaultValue="">
                     <option value="" disabled>
                         Select a Location
                     </option>
@@ -87,9 +87,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-full min-w-0">
                 <label className="label">
-                    <span className="label-text text-black">Category </span>
+                    <span className="label-text">Category </span>
                 </label>
-                <select className="select select-borderd w-full bg-white text-black" defaultValue="">
+                <select className="select select-borderd w-full" defaultValue="">
                     <option value="" disabled>
                         Select Category
                     </option>
@@ -105,9 +105,9 @@ function SellItem({setPage}) {
 
             <div className="pt-8 pl-8 w-96">
                 <label className="label">
-                    <span className="label-text text-black">Condition </span>
+                    <span className="label-text">Condition </span>
                 </label>
-                <select className="select select-borderd w-full bg-white text-black" defaultValue="">
+                <select className="select select-borderd w-full" defaultValue="">
                     <option value="" disabled>
                        Select Condition 
                     </option>
@@ -137,12 +137,12 @@ function SellItem({setPage}) {
 </div>
             <div className="w-full max-w-xl">
                 <label className="label" >
-                    <span className="label-text text-black">Description</span>
+                    <span className="label-text">Description</span>
                 </label>
                 <textarea
         
                 placeholder="Please enter a detailed description of your listed item."
-                className="textarea textarea-bordered w-full h-[450px] bg-white text-black"
+                className="textarea textarea-bordered w-170 "
                 ></textarea>
                 
                 <div className="flex justify-center mt-6">

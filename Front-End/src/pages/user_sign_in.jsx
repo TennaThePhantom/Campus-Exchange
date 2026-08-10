@@ -21,122 +21,183 @@
 
 */
 
+// Notes from Tennessee 08/09 :
+/*
+  Firebase Authentication Added
+  - Sign in with username and password
+  - Username is converted to email format for Firebase Auth
+  - Error handling for invalid credentials
+  - Redirects to dashboard on success
+*/
+/*
+  Notes from Daniyal 8/9:
+  I removed the "forgot password" button, since we don't have a forgot password page or 
+  anything that we can do to make a page for it
+*/
+
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 function UserSignIn() {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
-    e.preventDefault();
+	const handleSubmit = async (e) => {
+		e.preventDefault();
 
-    // Firebase login will be added later
+		// Validate inputs
+		if (!username || !password) {
+			setError("Please enter both username and password.");
+			return;
+		}
 
-    navigate("/dashboard");
-  }
+		setError("");
+		setLoading(true);
 
-  return (
-    <div className="grid min-h-svh grid-cols-1 bg-sky-50 md:grid-cols-2">
+		try {
+			// Convert username to email format for Firebase Auth
+			// Username becomes: username@campus-exchange.local
+			const email = `${username}@campus-exchange.local`;
 
-      <div className="hidden bg-sky-100 md:block" />
+			// Sign in with Firebase Auth
+			const userCredential = await signInWithEmailAndPassword(
+				auth,
+				email,
+				password,
+			);
 
-      <div className="flex items-center justify-center px-6 py-12">
+			console.log("✅ User signed in successfully:", userCredential.user.uid);
 
-        <div className="w-full max-w-sm">
+			// Redirect to dashboard on success
+			navigate("/dashboard");
+		} catch (err) {
+			console.error("❌ Login error:", err);
 
-          {/* Back Button */}
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            className="mb-4"
-          >
-            ← Back
-          </Button>
+			// Handle specific Firebase Auth errors
+			switch (err.code) {
+				case "auth/user-not-found":
+					setError(
+						"Username not found. Please check your username or create an account.",
+					);
+					break;
+				case "auth/wrong-password":
+					setError("Incorrect password. Please try again.");
+					break;
+				case "auth/invalid-email":
+					setError(
+						"Invalid username format. Please use letters and numbers only.",
+					);
+					break;
+				case "auth/too-many-requests":
+					setError("Too many failed attempts. Please try again later.");
+					break;
+				default:
+					setError(
+						"Failed to sign in. Please check your username and password.",
+					);
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
 
-          <h1 className="mb-6 text-2xl font-bold text-neutral-900">
-            Please enter your username and password.
-          </h1>
+	return (
+		<div className="grid min-h-svh grid-cols-1 bg-sky-50 md:grid-cols-2">
+			<div className="hidden bg-sky-100 md:block" />
 
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-lg border border-sky-200 bg-white p-6"
-          >
+			<div className="flex items-center justify-center px-6 py-12">
+				<div className="w-full max-w-sm">
+					{/* Back Button */}
+					<Button
+						variant="ghost"
+						onClick={() => navigate("/")}
+						className="mb-4"
+					>
+						← Back
+					</Button>
 
-            <label
-              className="mb-1 block text-sm font-medium"
-              htmlFor="username"
-            >
-              Username
-            </label>
+					<h1 className="mb-6 text-2xl font-bold text-neutral-900">
+						Please enter your username and password.
+					</h1>
 
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mb-4 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-              placeholder="Username"
-            />
+					<form
+						onSubmit={handleSubmit}
+						className="rounded-lg border border-sky-200 bg-white p-6"
+					>
+						<label
+							className="mb-1 block text-sm font-medium"
+							htmlFor="username"
+						>
+							Username
+						</label>
 
-            <label
-              className="mb-1 block text-sm font-medium"
-              htmlFor="password"
-            >
-              Password
-            </label>
+						<input
+							id="username"
+							type="text"
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
+							className="mb-4 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
+							placeholder="Username"
+							autoComplete="username"
+						/>
 
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mb-4 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
-              placeholder="Password"
-            />
+						<label
+							className="mb-1 block text-sm font-medium"
+							htmlFor="password"
+						>
+							Password
+						</label>
 
-            <Button
-              type="submit"
-              className="w-full bg-red-600 text-white hover:bg-red-700"
-            >
-              Sign In
-            </Button>
+						<input
+							id="password"
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							className="mb-4 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-300"
+							placeholder="Password"
+							autoComplete="current-password"
+						/>
 
-            <div className="mt-4 flex items-center justify-between">
+						{/* Error Display */}
+						{error && (
+							<div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3">
+								<p className="text-sm text-red-600">{error}</p>
+							</div>
+						)}
 
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                disabled
-                className="text-red-600"
-              >
-                Forgot Password?
-              </Button>
+						<Button
+							type="submit"
+							className="w-full bg-red-600 text-white hover:bg-red-700"
+							disabled={loading}
+						>
+							{loading ? "Signing In..." : "Sign In"}
+						</Button>
 
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={() => navigate("/register")}
-                className="text-red-600"
-              >
-                Create an Account
-              </Button>
-
-            </div>
-
-          </form>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
+						<div className="mt-4 flex items-center justify-between">
+							
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								onClick={() => navigate("/register")}
+								className="text-red-600"
+							>
+								Create an Account
+							</Button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 export default UserSignIn;
