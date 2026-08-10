@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { db } from "../firebase/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-const VerificationPage = ({ setPage }) => {
+const VerificationPage = ({ setPage, onUserCreated }) => {
 	const [image, setImage] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [result, setResult] = useState(null);
@@ -91,10 +91,18 @@ const VerificationPage = ({ setPage }) => {
 				umassLowell: true,
 				student: true,
 				sixteenDigitNumber: result.sixteenDigitNumber || "",
+				phone: "",
+				photoURL: "",
 				verifiedAt: new Date().toISOString(),
 			});
 			setUserCreated(true);
 			setConfirmationStep(false);
+			// hand the new user up to App so a listing can record who posted it
+			onUserCreated?.({
+				id: docRef.id,
+				studentId: result.extractedId,
+				studentName: result.extractedName,
+			});
 			console.log(" User created successfully with ID: ", docRef.id);
 		} catch (error) {
 			console.error(" Error creating user:", error);

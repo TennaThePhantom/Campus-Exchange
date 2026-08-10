@@ -18,7 +18,9 @@ const firebaseConfig = {
 
 // start up Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Analytics only works in a browser - guard it so this file can also be
+// imported by node scripts (see scripts/seedListings.js)
+const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
 
 // Initialize the Firebase services

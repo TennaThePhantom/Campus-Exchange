@@ -66,16 +66,7 @@ function UserSignIn({ onSignedIn, onCreateAccountClick }) {
               Sign In
             </Button>
  
-            <div className="mt-4 flex items-center justify-between">
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                disabled
-                className="text-red-600"
-              >
-                Forgot password?
-              </Button>
+            <div className="mt-4 flex items-center justify-center">
               <Button
                 type="button"
                 variant="link"

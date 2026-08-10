@@ -6,9 +6,14 @@ import Dashboard from "@/pages/Dashboard";
 import SellItem from "@/pages/sell_item";
 import VerificationPage from "./pages/verification_page";
 import BrowseListings from "./pages/browseListingsPage";
+import ProductDetail from "./pages/productDetailPage";
 
 function App() {
 	const [page, setPage] = useState("landing");
+	// which listing the browse page handed us to show on the detail page
+	const [selectedListingId, setSelectedListingId] = useState(null);
+	// set once a student finishes ID verification, used to stamp new listings
+	const [currentUser, setCurrentUser] = useState(null);
 
 	if (page === "register") {
 		return (
@@ -32,13 +37,24 @@ function App() {
 		return <Dashboard setPage={setPage} />;
 	}
 	if (page === "verification") {
-		return <VerificationPage setPage={setPage} />;
+		return <VerificationPage setPage={setPage} onUserCreated={setCurrentUser} />;
 	}
 	if (page === "sell") {
-		return <SellItem setPage={setPage} />;
+		return <SellItem setPage={setPage} currentUser={currentUser} />;
 	}
 	if (page === "browse") {
-		return <BrowseListings setPage={setPage} />;
+		return (
+			<BrowseListings
+				setPage={setPage}
+				onSelectListing={(listingId) => {
+					setSelectedListingId(listingId);
+					setPage("detail");
+				}}
+			/>
+		);
+	}
+	if (page === "detail") {
+		return <ProductDetail setPage={setPage} listingId={selectedListingId} />;
 	}
 	return (
 		<LandingPage
