@@ -165,7 +165,7 @@ function SellItem() {
 			<nav className="navbar bg-base-100 shadow-md px-8">
 				<button
 					type="button"
-					className="btn-ghost text-xl cuursor-pointer hover:text-blue-800"
+					className="btn-ghost text-xl cursor-pointer hover:text-blue-800"
 					onClick={() => navigate("/dashboard")}
 				>
 					Home
