@@ -1,12 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, X, CheckCircle, AlertCircle } from "lucide-react";
-import { db, storage } from "../firebase/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { auth, storage } from "../firebase/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { createListing } from "../firebase/listings";
+import { LOCATIONS, CATEGORIES, CONDITIONS } from "@/lib/listingOptions";
 
 function SellItem() {
 	const navigate = useNavigate();
+	const [currentUser, setCurrentUser] = useState(null);
+	const [authLoading, setAuthLoading] = useState(true);
 	const [loading, setLoading] = useState(false);
 	const [formData, setFormData] = useState({
 		title: "",
@@ -35,6 +39,31 @@ function SellItem() {
 		}, 4000);
 	};
 
+	// Get the currently logged-in user
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
+			if (user) {
+				setCurrentUser(user);
+				console.log("✅ User authenticated:", user.uid);
+			} else {
+				setCurrentUser(null);
+				console.log("❌ No user logged in");
+			}
+			setAuthLoading(false);
+		});
+		return () => unsubscribe();
+	}, []);
+
+	// Redirect to sign in if not authenticated
+	useEffect(() => {
+		if (!authLoading && !currentUser) {
+			showToast("warning", "Please sign in to create a listing.");
+			setTimeout(() => {
+				navigate("/signin");
+			}, 1500);
+		}
+	}, [currentUser, authLoading, navigate]);
+
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({ ...prev, [name]: value }));
@@ -43,6 +72,22 @@ function SellItem() {
 	const handleImageChange = (e) => {
 		const file = e.target.files[0];
 		if (!file) return;
+
+		// Validate file type
+		const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+		if (!validTypes.includes(file.type)) {
+			showToast("warning", "Please upload a PNG, JPEG, or WebP image.");
+			e.target.value = "";
+			return;
+		}
+
+		// Validate file size (max 5MB)
+		if (file.size > 5 * 1024 * 1024) {
+			showToast("warning", "Image size must be less than 5MB.");
+			e.target.value = "";
+			return;
+		}
+
 		setImageFile(file);
 		const reader = new FileReader();
 		reader.onload = (event) => setImagePreview(event.target.result);
@@ -52,13 +97,20 @@ function SellItem() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		// Check if user is authenticated
+		if (!currentUser) {
+			showToast("warning", "You must be logged in to create a listing.");
+			return;
+		}
+
+		// Validate all required fields
 		if (
-			!formData.title ||
+			!formData.title.trim() ||
 			!formData.price ||
 			!formData.location ||
 			!formData.category ||
 			!formData.condition ||
-			!formData.description
+			!formData.description.trim()
 		) {
 			showToast("warning", "Please fill out all required fields.");
 			return;
@@ -73,27 +125,34 @@ function SellItem() {
 		setUploadProgress(0);
 
 		try {
-			const imageRef = ref(storage, `listings/${Date.now()}_${imageFile.name}`);
-			const uploadTask = await uploadBytes(imageRef, imageFile);
-			const imageUrl = await getDownloadURL(uploadTask.ref);
+			//  Upload image to Firebase Storage
+			let imageUrl = "";
+			if (imageFile) {
+				const fileExtension = imageFile.name.split(".").pop();
+				const imageRef = ref(
+					storage,
+					`listings/${Date.now()}_${currentUser.uid}.${fileExtension}`,
+				);
+				const snapshot = await uploadBytes(imageRef, imageFile);
+				imageUrl = await getDownloadURL(snapshot.ref);
+				setUploadProgress(100);
+			}
 
-			const listingData = {
-				title: formData.title,
-				price: parseFloat(formData.price),
-				location: formData.location,
+			// Create listing using the listings.js helper
+			const listingId = await createListing({
+				title: formData.title.trim(),
+				price: formData.price === "" ? null : parseFloat(formData.price),
+				description: formData.description.trim(),
+				imageUrl: imageUrl,
 				category: formData.category,
 				condition: formData.condition,
-				description: formData.description,
-				imageUrl: imageUrl,
-				sellerId: "test_user",
-				sellerName: "Test User",
-				createdAt: serverTimestamp(),
-				status: "active",
-			};
+				location: formData.location,
+				sellerId: currentUser.uid, // ✅ Uses the authenticated user's UID
+			});
 
-			const docRef = await addDoc(collection(db, "listings"), listingData);
-			console.log("✅ Listing created with ID:", docRef.id);
+			console.log("✅ Listing created with ID:", listingId);
 
+			// Reset form
 			setFormData({
 				title: "",
 				price: "",
@@ -104,7 +163,7 @@ function SellItem() {
 			});
 			setImageFile(null);
 			setImagePreview(null);
-			setUploadProgress(100);
+			setUploadProgress(0);
 
 			showToast("success", "✅ Listing created successfully!");
 			setTimeout(() => {
@@ -115,9 +174,20 @@ function SellItem() {
 			showToast("error", "Failed to create listing. Please try again.");
 		} finally {
 			setLoading(false);
-			setTimeout(() => setUploadProgress(0), 3000);
 		}
 	};
+
+	// Show loading while checking auth
+	if (authLoading) {
+		return (
+			<div className="min-h-screen bg-sky-50 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto"></div>
+					<p className="mt-4 text-neutral-600">Loading...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div
@@ -165,7 +235,7 @@ function SellItem() {
 			<nav className="navbar bg-base-100 shadow-md px-8">
 				<button
 					type="button"
-					className="btn-ghost text-xl cursor-pointer hover:text-blue-800"
+					className="btn-ghost text-xl"
 					onClick={() => navigate("/dashboard")}
 				>
 					Home
@@ -177,11 +247,20 @@ function SellItem() {
 					<h1 className="text-3xl font-bold mb-6 text-black">
 						Create New Listing
 					</h1>
+					{currentUser && (
+						<p className="text-sm text-neutral-600 mb-4">
+							Creating listing as:{" "}
+							<span className="font-semibold">
+								{currentUser.displayName || currentUser.email}
+							</span>
+						</p>
+					)}
 				</div>
 
 				<div className="flex flex-col lg:flex-row items-start gap-50">
 					<div className="flex flex-col gap-3">
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							{/* Title */}
 							<div className="pt-8 pl-8 w-full max-w-md flex flex-col">
 								<label className="label">
 									<span className="label-text text-black">Title *</span>
@@ -197,6 +276,7 @@ function SellItem() {
 								/>
 							</div>
 
+							{/* Price */}
 							<div className="pt-8 pl-8 w-full min-w-0 flex flex-col">
 								<label className="label">
 									<span className="label-text text-black">Price *</span>
@@ -217,6 +297,7 @@ function SellItem() {
 								</div>
 							</div>
 
+							{/* Location */}
 							<div className="pt-8 pl-8 w-full min-w-0">
 								<label className="label">
 									<span className="label-text text-black">Location *</span>
@@ -231,39 +312,15 @@ function SellItem() {
 									<option value="" disabled>
 										Select a Location
 									</option>
-									<option value="Fox Hall (East Campus)">
-										Fox Hall (East Campus)
-									</option>
-									<option value="Leitch Hall (East Campus)">
-										Leitch Hall (East Campus)
-									</option>
-									<option value="Bougeois Hall (East Campus)">
-										Bougeois Hall (East Campus)
-									</option>
-									<option value="Donahue Hall (East Campus)">
-										Donahue Hall (East Campus)
-									</option>
-									<option value="River Suites East (East Campus)">
-										River Suites East (East Campus)
-									</option>
-									<option value="University Suites (East Campus)">
-										University Suites (East Campus)
-									</option>
-									<option value="Concordia Hall (South Campus)">
-										Concordia Hall (South Campus)
-									</option>
-									<option value="Sheehy Hall (South Campus)">
-										Sheehy Hall (South Campus)
-									</option>
-									<option value="River Suites West (South Campus)">
-										River Suites West (South Campus)
-									</option>
-									<option value="Starbucks (North Campus)">
-										Starbucks (North Campus)
-									</option>
+									{Object.entries(LOCATIONS).map(([code, label]) => (
+										<option key={code} value={label}>
+											{label}
+										</option>
+									))}
 								</select>
 							</div>
 
+							{/* Category */}
 							<div className="pt-8 pl-8 w-full min-w-0">
 								<label className="label">
 									<span className="label-text text-black">Category *</span>
@@ -278,15 +335,15 @@ function SellItem() {
 									<option value="" disabled>
 										Select Category
 									</option>
-									<option value="Books">Books</option>
-									<option value="Electronics">Electronics</option>
-									<option value="Furniture">Furniture</option>
-									<option value="Clothing">Clothing</option>
-									<option value="Appliances">Appliances</option>
-                                    <option value="Other">Other / Miscellaneous</option>
+									{Object.entries(CATEGORIES).map(([code, label]) => (
+										<option key={code} value={label}>
+											{label}
+										</option>
+									))}
 								</select>
 							</div>
 
+							{/* Condition */}
 							<div className="pt-8 pl-8 w-full">
 								<label className="label">
 									<span className="label-text text-black">Condition *</span>
@@ -301,15 +358,17 @@ function SellItem() {
 									<option value="" disabled>
 										Select Condition
 									</option>
-									<option value="New">New</option>
-									<option value="Slightly Used">Slightly Used</option>
-									<option value="Used">Used</option>
-									<option value="Damaged">Damaged</option>
+									{Object.entries(CONDITIONS).map(([code, label]) => (
+										<option key={code} value={label}>
+											{label}
+										</option>
+									))}
 								</select>
 							</div>
 						</div>
 
-						<label className="flex flex-col h-[350px] w-full maxs-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8 items-center justify-center bg-white text-black overflow-hidden">
+						{/* Image Upload */}
+						<label className="flex flex-col h-[350px] w-full max-w-2xl cursor-pointer border-2 border-dashed rounded-lg ml-8 items-center justify-center bg-white text-black overflow-hidden">
 							{imagePreview ? (
 								<img
 									src={imagePreview}
@@ -320,16 +379,20 @@ function SellItem() {
 								<>
 									<Camera className="h-12 w-12 text-primary" />
 									<p className="mt-3">Upload Images</p>
+									<p className="text-xs text-neutral-500">
+										PNG, JPEG, WebP (Max 5MB)
+									</p>
 								</>
 							)}
 							<input
 								type="file"
-								accept="image/*"
+								accept="image/png, image/jpeg, image/jpg, image/webp"
 								onChange={handleImageChange}
 								className="hidden"
 							/>
 						</label>
 
+						{/* Upload Progress */}
 						{uploadProgress > 0 && uploadProgress < 100 && (
 							<div className="w-full bg-gray-200 rounded-full h-2.5 ml-8">
 								<div
@@ -340,6 +403,7 @@ function SellItem() {
 						)}
 					</div>
 
+					{/* Description */}
 					<div className="w-full max-w-xl">
 						<label className="label">
 							<span className="label-text text-black">Description *</span>
@@ -353,14 +417,19 @@ function SellItem() {
 							required
 						></textarea>
 
-						<div className="flex justify-center mt-6">
+						<div className="flex flex-col sm:flex-row gap-4 mt-6 pl-15">
 							<button
 								type="submit"
 								className="btn btn-primary w-70"
-								disabled={loading}
+								disabled={loading || !currentUser}
 							>
 								{loading ? "Creating..." : "List Item"}
 							</button>
+							{!currentUser && (
+								<p className="text-sm text-red-600 mt-2">
+									You must be signed in to create a listing.
+								</p>
+							)}
 						</div>
 					</div>
 				</div>

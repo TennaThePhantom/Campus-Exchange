@@ -51,7 +51,7 @@ export function normalizeSeller(id, data) {
 		id,
 		studentName: raw.studentName || "UML Student",
 		studentId: raw.studentId || "",
-		phone: raw.phoneNumber || "",
+		phone: raw.phoneNumber || raw.phone || "", // firebase wants both phone number and phone in this 
 		photoURL: raw.photoURL || "",
 	};
 }
