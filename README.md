@@ -35,7 +35,7 @@ just click the link
 ### If You Still Need to Run Locally 
 
 If the grading for some reason requires local execution, please email me at:
-**[Tennessee_Foster@uml.edu]**
+**[Tennessee_Foster@student.uml.edu]**
 
 We will:
 1. Add your email to our Firebase/google project
@@ -43,3 +43,9 @@ We will:
 3. Schedule a time to help with setup
 
 *Note: This process requires 1-3 days of configuration installs setup and Init to run it locally.*
+
+- TennaThePhantom: Tennessee
+- Kenshi584: Derek 
+- diyachauhan: Diya
+- adamohanian-max: Adam
+- DS123838: Daniyal
