@@ -6,9 +6,12 @@ const { onInit } = require("firebase-functions/v2/core");
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
-// Initialize Firebase Admin SDK
-initializeApp();
+const admin = require("firebase-admin");
 
+// Initialize Firebase Admin SDK
+initializeApp({
+	credential: admin.credential.cert(require("./CampusExchangeAPI.json")),
+});
 // Initialize Google Cloud Vision client
 let visionClient;
 
