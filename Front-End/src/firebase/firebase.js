@@ -1,25 +1,23 @@
-// going to modify this later don't touch at the moment
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Firebase configuration - going to move in .env file soon
+// Firebase configuration
 const firebaseConfig = {
-	apiKey: "AIzaSyBfP2yN7rjf_pggWQqup6VP_kT3zMmSQFk",
-	authDomain: "campus-exchange-d47f4.firebaseapp.com",
-	projectId: "campus-exchange-d47f4",
-	storageBucket: "campus-exchange-d47f4.firebasestorage.app",
-	messagingSenderId: "452783530182",
-	appId: "1:452783530182:web:4647cbdb49173928f6b7c7",
-	measurementId: "G-70FC399WZK",
+	apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+	authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+	projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+	storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+	messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+	appId: import.meta.env.VITE_FIREBASE_APP_ID,
+	measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// start up Firebase
+// Start up Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-
 
 // Initialize the Firebase services
 export const db = getFirestore(app);

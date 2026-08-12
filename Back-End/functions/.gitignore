@@ -1,2 +1,9 @@
 node_modules/
 *.local
+# functions/.gitignore
+.env
+*.env
+*.env.local
+*.env.production
+CampusExchangeAPI.json
+*-credentials.json
